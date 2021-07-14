@@ -21,7 +21,8 @@ OBJCOPY_BIN :=
 # Every subdirectory with source files must be described here
 SUBDIRS := \
 APP/Drivers/BEEP \
-APP/Drivers/irmp \
+APP/Drivers/IRMP \
+APP/Drivers/LCD \
 APP/Src \
 Core/Src \
 Core/Startup \

@@ -5,16 +5,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../APP/Drivers/irmp/irmp.c 
+../APP/Drivers/IRMP/irmp.c 
 
 OBJS += \
-./APP/Drivers/irmp/irmp.o 
+./APP/Drivers/IRMP/irmp.o 
 
 C_DEPS += \
-./APP/Drivers/irmp/irmp.d 
+./APP/Drivers/IRMP/irmp.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
-APP/Drivers/irmp/irmp.o: ../APP/Drivers/irmp/irmp.c APP/Drivers/irmp/subdir.mk
-	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F407xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../APP/Inc -I../APP/Src -I../APP/Drivers/BEEP -I../APP/Drivers/irmp -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"APP/Drivers/irmp/irmp.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
+APP/Drivers/IRMP/irmp.o: ../APP/Drivers/IRMP/irmp.c APP/Drivers/IRMP/subdir.mk
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F407xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../APP/Inc -I../APP/Src -I../APP/Drivers/BEEP -I../APP/Drivers/IRMP -I../APP/Drivers/LCD -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"APP/Drivers/IRMP/irmp.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 
