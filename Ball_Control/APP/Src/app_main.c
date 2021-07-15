@@ -17,17 +17,23 @@
 #include "mpu6050.h"
 #include "pca9685.h"
 #include "PID.h"
+#include "keyboard.h"
 
 #define FRAME 50  //设置摄像头帧率为50
 
-MPU6050_t MPU6050; //MPU6050结构体，用于存放欧拉角的原始值和结果
+//MPU6050_t MPU6050; //MPU6050结构体，用于存放欧拉角的原始值和结果
 uint8_t receive_buff[32] = { 0 }; //DMA接收缓存区
+
 uint16_t coordinate_XY[32][2] = { 0 };  //用于保存当前球坐标
-uint16_t SetPosi_X, SetPosi_Y;   //用于保存预设坐标
+uint16_t SetPosi_X = 0, SetPosi_Y = 0;   //用于保存预设坐标,初始值为原点位置
+
 float speed, speedX, speedY; //用于存放当前速度
 float distance; //存放当前位置和目标位置距离差
+
 uint8_t i = 0;
 PID pid_X, pid_Y;  //PID结构体,分别表示X,Y坐标
+
+uint8_t Mode[6] = {0};
 
 //计算小球速度
 float ballSpeed(uint16_t *coordinate_XY, uint8_t len, uint8_t i) {
@@ -48,28 +54,44 @@ float ballSpeed(uint16_t *coordinate_XY, uint8_t len, uint8_t i) {
 void ShowString() {
 	uint8_t Buffer[32]; //输出文本暂存区
 	LCD_ShowString(30, 30, 400, 48, 48, (uint8_t*) "STM32F407");
-	print("\r\nKalmanAngleX:%.2f\r\nKalmanAngleY:%.2f\r\n",
-			MPU6050.KalmanAngleX, MPU6050.KalmanAngleY);
-	//LCD输出平台欧拉角
-	sprintf((char*) Buffer, "KalmanAngleX:%7.2f", MPU6050.KalmanAngleX);
-	LCD_ShowString(30, 100, 400, 32, 32, Buffer);
-	sprintf((char*) Buffer, "KalmanAngleY:%7.2f", MPU6050.KalmanAngleY);
-	LCD_ShowString(30, 150, 400, 32, 32, Buffer);
+
+//	print("\r\nKalmanAngleX:%.2f\r\nKalmanAngleY:%.2f\r\n",
+//			MPU6050.KalmanAngleX, MPU6050.KalmanAngleY);
+//	//LCD输出平台欧拉角
+//	sprintf((char*) Buffer, "KalmanAngleX:%7.2f", MPU6050.KalmanAngleX);
+//	LCD_ShowString(30, 100, 400, 32, 32, Buffer);
+//	sprintf((char*) Buffer, "KalmanAngleY:%7.2f", MPU6050.KalmanAngleY);
+//	LCD_ShowString(30, 150, 400, 32, 32, Buffer);
+
 	//LCD输出设定球坐标
-	sprintf((char*) Buffer, "Actual_XY:(%5d, %5d)", SetPosi_X, SetPosi_Y);
-	LCD_ShowString(30, 250, 400, 32, 32, Buffer);
+	sprintf((char*) Buffer, "Actual_XY:(%4d, %4d)", SetPosi_X, SetPosi_Y);
+	LCD_ShowString(30, 100, 400, 32, 32, Buffer);
 	//LCD输出当前球坐标，若球的位置达到要求，则输出黑色文字，否则输出红色文字
 	if ((coordinate_XY[i][0] - SetPosi_X <= 50
 			&& SetPosi_X - coordinate_XY[i][0] >= -50)
-			&& (coordinate_XY[i][1] - SetPosi_Y <= 50 && coordinate_XY[i][1] - SetPosi_Y >= -50)) {
+			&& (coordinate_XY[i][1] - SetPosi_Y <= 50
+					&& coordinate_XY[i][1] - SetPosi_Y >= -50)) {
 		POINT_COLOR = RED;
 	} else {
 		POINT_COLOR = BLACK;
 	}
-	sprintf((char*) Buffer, "SET_XY:(%5d, %5d)", coordinate_XY[i][0],
+	sprintf((char*) Buffer, "SET_XY   :(%4d, %4d)", coordinate_XY[i][0],
 			coordinate_XY[i][1]);
-	LCD_ShowString(30, 200, 400, 32, 32, Buffer);
+	LCD_ShowString(30, 150, 400, 32, 32, Buffer);
 	POINT_COLOR = BLACK;
+
+	//LCD输出舵机当前角度
+	sprintf((char*) Buffer, "Angle_X:%6.2f", pid_X.angle);
+	LCD_ShowString(30, 200, 400, 32, 32, Buffer);
+	sprintf((char*) Buffer, "Angle_Y:%6.2f", pid_Y.angle);
+	LCD_ShowString(30, 250, 400, 32, 32, Buffer);
+
+	LCD_ShowString(30, 300, 400, 32, 32, (uint8_t *)"请选择模式");
+}
+
+void SelectMode(void)
+{
+
 }
 
 //初始化函数
@@ -79,14 +101,15 @@ void app_main_init(void) {
 	LCD_Clear(WHITE);
 	POINT_COLOR = BLACK;
 
-	//MPU6050初始化,判断MPU6050是否正常连接
-	while (MPU6050_Init(&hi2c1) == 1)
-		;
+//	//MPU6050初始化,判断MPU6050是否正常连接
+//	while (MPU6050_Init(&hi2c1) == 1)
+//		;
 
 	//PCA9685初始化,将通道一和通道二(本次需要使用这两个通道)的角度初始化为0
 	PCA9685_Init(&hi2c1);
 	PCA9685_SetServoAngle(0, 90);
 	PCA9685_SetServoAngle(1, 90);
+
 
 	//PID初始化, 并设定预设球位置
 	PID_Init(&pid_X);
@@ -101,21 +124,23 @@ void app_main_init(void) {
 void app_main(void) {
 	//分别使用pid算法调整X,Y的坐标
 	//其中0通道控制X轴舵机,1通道控制Y轴舵机
-	PID_Calc(&pid_X, coordinate_XY[i][0], speed);
-	PID_Calc(&pid_Y, coordinate_XY[i][1], speed);
+	PID_Calc(&pid_X, coordinate_XY[i][0], speedX);
+	PID_Calc(&pid_Y, coordinate_XY[i][1], speedY);
 	PCA9685_SetServoAngle(0, pid_X.angle);
 	PCA9685_SetServoAngle(1, pid_Y.angle);
+	keyOperat();
 
-	MPU6050_Read_All(&hi2c1, &MPU6050);
+//	MPU6050_Read_All(&hi2c1, &MPU6050);
 	//	mpu6050_send_data((float)MPU6050.KalmanAngleX, (float)MPU6050.KalmanAngleY, 0, 0, 0, 0);
-	usart1_report_imu(MPU6050.Accel_X_RAW, MPU6050.Accel_Y_RAW,
-			MPU6050.Accel_Z_RAW, MPU6050.Gyro_X_RAW, MPU6050.Gyro_Y_RAW,
-			MPU6050.Gyro_Z_RAW, (float) MPU6050.KalmanAngleX * 100,
-			(float) MPU6050.KalmanAngleY * 100, 0);
+//	usart1_report_imu(MPU6050.Accel_X_RAW, MPU6050.Accel_Y_RAW,
+//			MPU6050.Accel_Z_RAW, MPU6050.Gyro_X_RAW, MPU6050.Gyro_Y_RAW,
+//			MPU6050.Gyro_Z_RAW, (float) MPU6050.KalmanAngleX * 100,
+//			(float) MPU6050.KalmanAngleY * 100, 0);
 	//	print("\r\nKalmanAngleX:%.2f\r\nKalmanAngleY:%.2f\r\n", MPU6050.KalmanAngleX, MPU6050.KalmanAngleY);
+
+	//同一使用LCD输出相关信息
 	ShowString();
 
-	HAL_Delay(500);
 }
 
 // 须在头文件中添加 #include <stdio.h>

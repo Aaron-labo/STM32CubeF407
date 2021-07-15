@@ -104,6 +104,8 @@
                                     <listOptionValue builtIn="false" value="../APP/Drivers/PCA9685"/>
                                     									
                                     <listOptionValue builtIn="false" value="../APP/Drivers/PID"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="../APP/Drivers/KeyBoard"/>
                                     								
                                 </option>
                                 								

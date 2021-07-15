@@ -1,3 +1,4 @@
+"APP/Drivers/KeyBoard/keyboard.o"
 "APP/Drivers/LCD/lcd.o"
 "APP/Drivers/MPU6050/mpu6050.o"
 "APP/Drivers/PCA9685/pca9685.o"

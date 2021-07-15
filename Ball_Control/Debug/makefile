@@ -18,6 +18,7 @@ RM := rm -rf
 -include APP/Drivers/PCA9685/subdir.mk
 -include APP/Drivers/MPU6050/subdir.mk
 -include APP/Drivers/LCD/subdir.mk
+-include APP/Drivers/KeyBoard/subdir.mk
 -include subdir.mk
 -include objects.mk
 

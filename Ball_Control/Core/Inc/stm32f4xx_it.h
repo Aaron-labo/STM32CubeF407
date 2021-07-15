@@ -56,10 +56,11 @@ void SVC_Handler(void);
 void DebugMon_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
+void EXTI0_IRQHandler(void);
 void USART1_IRQHandler(void);
 void DMA2_Stream2_IRQHandler(void);
 /* USER CODE BEGIN EFP */
-
+#define KY_UP HAL_GPIO_ReadPin(KY_UP_GPIO_Port, KY_UP_Pin)
 /* USER CODE END EFP */
 
 #ifdef __cplusplus

@@ -19,7 +19,7 @@ uint8_t Angle = 0;
 void app_main_init(void) {
 	PCA9685_Init(&hi2c2);
 	PCA9685_SetServoAngle(0, 0);
-	PCA9685_SetServoAngle(1, 0);
+	PCA9685_SetServoAngle(1, 90);
 //	PCA9685_SetServoAngle(2, 0);
 //	PCA9685_SetServoAngle(3, 0);
 //	PCA9685_SetServoAngle(4, 0);

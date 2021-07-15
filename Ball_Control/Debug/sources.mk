@@ -20,6 +20,7 @@ OBJCOPY_BIN :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+APP/Drivers/KeyBoard \
 APP/Drivers/LCD \
 APP/Drivers/MPU6050 \
 APP/Drivers/PCA9685 \
