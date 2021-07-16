@@ -11,6 +11,7 @@
 #include "gpio.h"
 #include "fsmc.h"
 #include "math.h"
+#include "tim.h"
 
 #include "lcd.h"
 #include "host_computer.h"
@@ -130,8 +131,6 @@ void ShowString() {
 
 //模式1：稳定模式
 void ModeStable(void) {
-	float distance;
-
 	//确定稳定坐标
 	GetSetPosi(SetPosi, Mode[1]);
 	//将稳定坐标放入PID结构体中
@@ -139,7 +138,7 @@ void ModeStable(void) {
 	ChaSetPosi(&pid_Y, SetPosi[1]);
 
 	//计算小球速度,同时查看间距
-	distance = ballSpeed((uint16_t*) coordinate_XY, 32);
+	ballSpeed((uint16_t*) coordinate_XY, 32);
 	//分别使用pid算法调整X,Y的坐标
 	//其中0通道控制X轴舵机,1通道控制Y轴舵机
 	PID_Calc(&pid_X, coordinate_XY[i][0], speedX);
@@ -154,7 +153,7 @@ void ModeStable(void) {
 //模式2：移动模式
 void ModeMove(void) {
 	uint8_t count = 0;
-	static uint8_t isStable = 0, isTim = 0;  //判断是否稳定，是否开始计时，Tim为1即为开始计时
+	static uint8_t isTim = 0;  //判断是否稳定，是否开始计时，Tim为1即为开始计时
 	while (Mode[count] != 0) {
 		count++;
 	}
@@ -167,40 +166,40 @@ void ModeMove(void) {
 		ChaSetPosi(&pid_Y, SetPosi[1]);
 
 		//计算小球速度,同时查看间距
-		distance = ballSpeed((uint16_t*) coordinate_XY, 32);
+		ballSpeed((uint16_t*) coordinate_XY, 32);
 		//i==1时，需要在初始位置稳定2s以上
 		if (i == 1) {
-			if (Tim == 0) {
+			if (isTim == 0) {
 				if (distance <= 30) {
 					HAL_TIM_Base_Start(&htim2);
-					Tim = 1;
+					isTim = 1;
 				}
 			} else {
 				if (distance > 30) {
-					Tim = 1;
+					isTim = 1;
 					HAL_TIM_Base_Stop(&htim2);
 					__HAL_TIM_SET_COUNTER(&htim2, 0);
 				} else if (__HAL_TIM_GET_COUNTER(&htim2) >= 30000) {
 					i++;
-					Tim = 1;
+					isTim = 1;
 					HAL_TIM_Base_Stop(&htim2);
 					__HAL_TIM_SET_COUNTER(&htim2, 0);
 				}
 			}
 		} else if (i > 1 || i < count - 1) { //中间路径只需稍微停留即可，这里停留0.5s
-			if (Tim == 0) {
+			if (isTim == 0) {
 				if (distance <= 30) {
 					HAL_TIM_Base_Start(&htim2);
-					Tim = 1;
+					isTim = 1;
 				}
 			} else {
 				if (distance > 30) {
-					Tim = 1;
+					isTim = 1;
 					HAL_TIM_Base_Stop(&htim2);
 					__HAL_TIM_SET_COUNTER(&htim2, 0);
 				} else if (__HAL_TIM_GET_COUNTER(&htim2) >= 5000) {
 					i++;
-					Tim = 1;
+					isTim = 1;
 					HAL_TIM_Base_Stop(&htim2);
 					__HAL_TIM_SET_COUNTER(&htim2, 0);
 				}
