@@ -64,7 +64,7 @@ main-build: F407_01.LED.elf secondary-outputs
 
 # Tool invocations
 F407_01.LED.elf: $(OBJS) $(USER_OBJS) E:\Singlechip\stm32\MyCode\STM32CubeF407\01.LED\STM32F407ZGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "F407_01.LED.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\Singlechip\stm32\MyCode\STM32CubeF407\01.LED\STM32F407ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="F407_01.LED.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "F407_01.LED.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\Singlechip\stm32\MyCode\STM32CubeF407\01.LED\STM32F407ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="F407_01.LED.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

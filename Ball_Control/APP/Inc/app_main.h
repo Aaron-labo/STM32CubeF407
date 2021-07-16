@@ -12,7 +12,7 @@
 
 void app_main_init(void);
 void app_main(void);
-void SelectMode(void);
+void SelecMode(uint8_t isInit) ;
 
 #ifdef DEBUG
 //#define print(format, ...) printf( format "\r\n",##__VA_ARGS__)

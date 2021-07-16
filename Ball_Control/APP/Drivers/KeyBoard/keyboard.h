@@ -29,10 +29,10 @@
 #define Row4_INPUT_Read  HAL_GPIO_ReadPin(Row4_GPIO_Port, Row4_Pin)
 
 /*********按键宏定义*************/
-#define ONE		1					//	1		2		3		上
-#define TWO 	2					//	4		5		6		下
-#define THREE	3					//	7		8		9		左
-#define FOUR	5					//	确定		0		重置		右
+#define ONE		1					//	1		2		3		稳定
+#define TWO 	2					//	4		5		6		移动
+#define THREE	3					//	7		8		9		绕圈
+#define FOUR	5					//	确定		0		重置		取消
 #define FIVE	6
 #define SIX		7
 #define SEVEN	9
@@ -40,13 +40,13 @@
 #define NINE	11
 #define ZERO	14
 
-#define UP		4
-#define DOWN	8
-#define LEFT	12
-#define RIGHT	16
+#define STABLE	4
+#define MOVE	8
+#define ROUND	12
 
 #define DETER	13
 #define RESET	15
+#define CANCEL	16
 
 #define NOPRES	0
 

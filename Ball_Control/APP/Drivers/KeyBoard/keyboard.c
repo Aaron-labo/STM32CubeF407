@@ -9,6 +9,7 @@
 
 uint8_t keyboard_scan(void) {
 	uint8_t i, keynum = 0;
+	static uint8_t lastnum = 0;
 	if (Row1_INPUT_Read == GPIO_PIN_RESET) {			//当有按键按下
 		HAL_Delay(20);
 		if (Row1_INPUT_Read == GPIO_PIN_RESET) { //消抖
@@ -120,8 +121,14 @@ uint8_t keyboard_scan(void) {
 			&& Row2_INPUT_Read == GPIO_PIN_RESET
 			&& Row3_INPUT_Read == GPIO_PIN_RESET
 			&& Row4_INPUT_Read == GPIO_PIN_RESET) {
-		keynum = NOPRES;
+		return NOPRES;
 	}
+
+	if(lastnum == keynum)
+	{
+		return NOPRES;
+	}
+	lastnum = keynum;
 	return keynum;
 }
 
@@ -162,17 +169,17 @@ void keyOperat(void) {
 	case ZERO:
 		printf("按键被按下。\r\n------------0\r\n");
 		break;
-	case UP:
-		printf("按键被按下。\r\n------------上\r\n");
+	case STABLE:
+		printf("按键被按下。\r\n------------稳定\r\n");
 		break;
-	case DOWN:
-		printf("按键被按下。\r\n------------下\r\n");
+	case MOVE:
+		printf("按键被按下。\r\n------------移动\r\n");
 		break;
-	case LEFT:
-		printf("按键被按下。\r\n------------左\r\n");
+	case ROUND:
+		printf("按键被按下。\r\n------------绕圈\r\n");
 		break;
-	case RIGHT:
-		printf("按键被按下。\r\n------------右\r\n");
+	case CANCEL:
+		printf("按键被按下。\r\n------------取消\r\n");
 		break;
 	case DETER:
 		printf("按键被按下。\r\n------------确定\r\n");
