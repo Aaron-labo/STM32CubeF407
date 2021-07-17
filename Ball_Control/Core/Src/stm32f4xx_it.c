@@ -27,6 +27,7 @@
 #include "app_main.h"
 #include "keyboard.h"
 #include "pca9685.h"
+#include "tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -217,6 +218,8 @@ void EXTI0_IRQHandler(void)
 	HAL_Delay(20);
 	if (KY_UP == GPIO_PIN_SET) {
 		printf("KY_UP按键按下。。。。。\r\n");
+		HAL_TIM_Base_Stop(&htim5);
+		__HAL_TIM_SET_COUNTER(&htim5, 0);
 		//让舵机角度再次回到初始值
 		PCA9685_SetServoAngle(0, 90);
 		PCA9685_SetServoAngle(1, 90);

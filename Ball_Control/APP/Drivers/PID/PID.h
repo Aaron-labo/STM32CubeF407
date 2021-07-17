@@ -23,6 +23,6 @@ typedef struct {
 void PID_Init(PID* pid);
 uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed);
 void ChaSetPosi(PID *pid, uint16_t setPosi);
-void PID_inte_Init(PID* pid);
+void PID_Reset(PID* pid);
 
 #endif

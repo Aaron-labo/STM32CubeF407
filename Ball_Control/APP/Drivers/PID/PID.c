@@ -79,12 +79,17 @@ uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed) {
 	/****************************************************************************************/
 }
 
-
 //改变设定值
 void ChaSetPosi(PID *pid, uint16_t setPosi) {
 	pid->SetPosi = setPosi;
 }
 
-void PID_inte_Init(PID *pid) {
+void PID_Reset(PID *pid) {
 	pid->integral = 0;
+	pid->Speed = 0;
+	pid->errorPosi[0] = 0;
+	pid->errorPosi[1] = 0;
+	pid->errorSpeed[0] = 0;
+	pid->errorSpeed[1] = 0;
+	pid->errorSpeed[2] = 0;
 }
