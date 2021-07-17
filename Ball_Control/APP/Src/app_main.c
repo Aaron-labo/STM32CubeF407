@@ -44,13 +44,16 @@ void ballSpeed() {
 	uint8_t j = 0;
 	j = (i - 10) ? (i >= 10) : (i - 10 + LEN);  //使用当前帧的坐标和10帧前的坐标计算瞬时速度
 	//计算瞬时的X方向、Y方向和总间距
-	distanceX = (coordinate_XY[i][0] - coordinate_XY[j][0])/RESOLUTION;
-	distanceY = (coordinate_XY[i][1] - coordinate_XY[j][1])/RESOLUTION;
+	distanceX = (coordinate_XY[i][0] - coordinate_XY[j][0]) / RESOLUTION;
+	distanceY = (coordinate_XY[i][1] - coordinate_XY[j][1]) / RESOLUTION;
 	distanceIns = sqrtf(distanceX * distanceX + distanceY * distanceY);
 
 	//顺便计算出当前位置与目标位置的间距
-	distance = sqrt((coordinate_XY[i][0] - SetPosi[0]) * (coordinate_XY[i][0] - SetPosi[0]) +
-			(coordinate_XY[i][1] - SetPosi[1]) * (coordinate_XY[i][1] - SetPosi[1]));
+	distance = sqrt(
+			(coordinate_XY[i][0] - SetPosi[0])
+					* (coordinate_XY[i][0] - SetPosi[0])
+					+ (coordinate_XY[i][1] - SetPosi[1])
+							* (coordinate_XY[i][1] - SetPosi[1]));
 
 	/*
 	 * 计算各方向上的速度
@@ -145,27 +148,29 @@ void ShowString() {
 	LCD_ShowString(30, 370, 400, 32, 32, Buffer);
 
 	//LCD输出设定球速度(包括速度期望和当前速度)
-	sprintf((char*) Buffer, "Expect_Speed:%5.2f",
+	sprintf((char*) Buffer, "Expect_Speed:%7.2f",
 			sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed));
 	LCD_ShowString(30, 440, 400, 32, 32, Buffer);
 	//LCD输出当前球速度，若球的速度达到要求，则输出黑色文字，否则输出红色文字
-	if (sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed) - speed <= 1
-			&& sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed) - speed >= -1) {
+	if (sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed) - speed
+			<= 1
+			&& sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed)
+					- speed >= -1) {
 		POINT_COLOR = RED;
 	} else {
 		POINT_COLOR = BLACK;
 	}
-	sprintf((char*) Buffer, "Actual_Speed:%5.2f", speed);
+	sprintf((char*) Buffer, "Actual_Speed:%7.2f", speed);
 	LCD_ShowString(30, 490, 400, 32, 32, Buffer);
 	POINT_COLOR = BLACK;
 
 	//LCD输出耗费时间
 	sprintf((char*) Buffer, "Total Time:%5.2f",
 	__HAL_TIM_GET_COUNTER(&htim5) * 1.0 / 10000);
-	LCD_ShowString(30, 540, 400, 32, 32, Buffer);
+	LCD_ShowString(30, 560, 400, 32, 32, Buffer);
 	sprintf((char*) Buffer, "Stable Time:%5.2f",
 	__HAL_TIM_GET_COUNTER(&htim2) * 1.0 / 10000);
-	LCD_ShowString(30, 590, 400, 32, 32, Buffer);
+	LCD_ShowString(30, 610, 400, 32, 32, Buffer);
 
 }
 
@@ -219,7 +224,7 @@ void ModeMove(void) {
 					isTim = 0;
 					HAL_TIM_Base_Stop(&htim2);
 					__HAL_TIM_SET_COUNTER(&htim2, 0);  //重新将计时器置零，方便下次计时
-				} else if (__HAL_TIM_GET_COUNTER(&htim2) >= 30000) {  //若间距小于30的情况下持续了3s，则完成稳定任务
+				} else if (__HAL_TIM_GET_COUNTER(&htim2) >= 30000) { //若间距小于30的情况下持续了3s，则完成稳定任务
 					i++;	//i加一，则进入下一环节，即小球移动
 					isTim = 0;
 					HAL_TIM_Base_Stop(&htim2);
@@ -286,12 +291,12 @@ void SelecMode(uint8_t isInit) {
 		 * 若如何输入，则显示模式缓存区数据
 		 * 先输入模式（即稳定、移动和绕圈），后输入数字，最后一位一定为确定键，并开始计时
 		 */
-		if (i == 5) {//该判断语句的多用是确保最后一定按下确定键
+		if (i == 5) { //该判断语句的多用是确保最后一定按下确定键
 			if (key == DETER) {
-				HAL_TIM_Base_Start(&htim5);//按下确定键后开始计时
+				HAL_TIM_Base_Start(&htim5); //按下确定键后开始计时
 				PID_Reset(&pid_X); 		   //并重置PID信息
 				PID_Reset(&pid_Y);
-				return;//跳出函数，开始控制
+				return; 		   //跳出函数，开始控制
 			} else {
 				printf("你输入的格式不符合要求，请按下确定键!\r\n");
 				i -= 1; //若输入格式不符合要求则重新输入
@@ -299,15 +304,31 @@ void SelecMode(uint8_t isInit) {
 			}
 		} else if (i == 0 && key != STABLE && key != MOVE && key != ROUND) {
 			printf("你输入的格式不符合要求，请输入模式!\r\n");
-			i = -1;//若输入格式不符合要求则重新输入
+			i = -1; //若输入格式不符合要求则重新输入
 			continue;
 		} else if (i == 0 && (key == STABLE || key == MOVE || key == ROUND)) {
 			Mode[i] = key; //若输入符合要求，则将键值存入模式缓存区中
 			printf("%d  %d  %d  %d  %d\r\n", Mode[0], Mode[1], Mode[2], Mode[3],
 					Mode[4]);
+
+			//在LCD中显示按键信息
+			POINT_COLOR = RED;
+			switch (key) {
+			case STABLE:
+				LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "STABLE");
+				break;
+			case MOVE:
+				LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "MOVE  ");
+				break;
+			case ROUND:
+				LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "ROUND ");
+				break;
+			}
+			POINT_COLOR = BLACK;
+
 			continue;
 		} else if (key == DETER) {
-			HAL_TIM_Base_Start(&htim5);//按下确定键后开始计时
+			HAL_TIM_Base_Start(&htim5); //按下确定键后开始计时
 			PID_Reset(&pid_X);		   //并重置PID信息
 			PID_Reset(&pid_Y);
 			break;
@@ -326,17 +347,51 @@ void SelecMode(uint8_t isInit) {
 			Mode[i] = key; //若输入符合要求，则将键值存入模式缓存区中
 			printf("%d  %d  %d  %d  %d\r\n", Mode[0], Mode[1], Mode[2], Mode[3],
 					Mode[4]);
+
+			//在LCD中显示按键信息
+			POINT_COLOR = RED;
+			switch (key) {
+			case ONE:
+				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "1");
+				break;
+			case TWO:
+				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "2");
+				break;
+			case THREE:
+				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "3");
+				break;
+			case FOUR:
+				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "4");
+				break;
+			case FIVE:
+				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "5");
+				break;
+			case SIX:
+				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "6");
+				break;
+			case SEVEN:
+				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "7");
+				break;
+			case EIGHT:
+				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "8");
+				break;
+			case NINE:
+				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "9");
+				break;
+			}
+			POINT_COLOR = BLACK;
+
 			continue;
 		} else if (key == DETER) {
-			HAL_TIM_Base_Start(&htim5);//按下确定键后开始计时
+			HAL_TIM_Base_Start(&htim5); //按下确定键后开始计时
 			PID_Reset(&pid_X);		   //并重置PID信息
 			PID_Reset(&pid_Y);
 			break;
 		} else if (key == RESET) {
-			for (i = 0; i <= 4; i++) {//按下复位键后，将模式缓存区中的信息清零
+			for (i = 0; i <= 4; i++) {		   //按下复位键后，将模式缓存区中的信息清零
 				Mode[i] = 0;
 			}
-			i = -1;//i=-1,进入下一个循环后，会自动加一，即从0重新开始
+			i = -1;		   //i=-1,进入下一个循环后，会自动加一，即从0重新开始
 			printf("复位\r\n");
 			continue;
 		}
