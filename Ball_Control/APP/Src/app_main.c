@@ -174,6 +174,50 @@ void ShowString() {
 
 }
 
+//LCD输出模式选择相关内容
+void ShowMode(uint8_t key) {
+	POINT_COLOR = RED; //输出字符为红色
+	switch (key) {
+	case STABLE:
+		LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "STABLE");
+		break;
+	case MOVE:
+		LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "MOVE  ");
+		break;
+	case ROUND:
+		LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "ROUND ");
+		break;
+	case ONE:
+		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "1");
+		break;
+	case TWO:
+		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "2");
+		break;
+	case THREE:
+		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "3");
+		break;
+	case FOUR:
+		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "4");
+		break;
+	case FIVE:
+		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "5");
+		break;
+	case SIX:
+		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "6");
+		break;
+	case SEVEN:
+		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "7");
+		break;
+	case EIGHT:
+		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "8");
+		break;
+	case NINE:
+		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "9");
+		break;
+	}
+	POINT_COLOR = BLACK; //将字符恢复为黑色
+}
+
 //模式1：稳定模式
 void ModeStable(void) {
 	//确定稳定坐标
@@ -264,11 +308,42 @@ void ModeMove(void) {
 
 //模式3：绕圈模式
 void ModeRound(void) {
-	//确定中心坐标
-	GetSetPosi(SetPosi, Mode[1]);
-	//将稳定坐标放入PID结构体中
-	ChaSetPosi(&pid_X, SetPosi[0]);
-	ChaSetPosi(&pid_Y, SetPosi[1]);
+	//绕圈模式使用极坐标转为直角坐标
+	uint16_t radius = 100;   //半径设置为100
+	uint8_t zita = 0;      //角度初始位为0
+
+	while (1) {
+		//确定中心坐标
+		GetSetPosi(SetPosi, Mode[1]);
+		//根据中心坐标和相对极坐标，确定其直角坐标
+		SetPosi[0] += (uint16_t) (radius * cos(zita));
+		SetPosi[1] += (uint16_t) (radius * sin(zita));
+
+		//将稳定坐标放入PID结构体中
+		ChaSetPosi(&pid_X, SetPosi[0]);
+		ChaSetPosi(&pid_Y, SetPosi[1]);
+
+		//计算小球速度,同时查看间距
+		ballSpeed();
+
+		//当当前位置与目标位置间距小于20，目标坐标角度增加10度
+		if(distance <= 20)
+		{
+			zita += 10;
+		}
+
+		//分别使用pid算法调整X,Y的坐标
+		//其中0通道控制X轴舵机,1通道控制Y轴舵机
+		PID_Calc(&pid_X, coordinate_XY[i][0], speedX);
+		PID_Calc(&pid_Y, coordinate_XY[i][1], speedY);
+		PCA9685_SetServoAngle(0, pid_X.angle);
+		PCA9685_SetServoAngle(1, pid_Y.angle);
+
+		//若角度达到了360度，重置为0，起到循环的目的
+		if (zita == 360) {
+			zita = 0;
+		}
+	}
 }
 
 //选择模式,isInit=1表示在初始化中调用
@@ -312,19 +387,7 @@ void SelecMode(uint8_t isInit) {
 					Mode[4]);
 
 			//在LCD中显示按键信息
-			POINT_COLOR = RED;
-			switch (key) {
-			case STABLE:
-				LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "STABLE");
-				break;
-			case MOVE:
-				LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "MOVE  ");
-				break;
-			case ROUND:
-				LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "ROUND ");
-				break;
-			}
-			POINT_COLOR = BLACK;
+			ShowMode(key);
 
 			continue;
 		} else if (key == DETER) {
@@ -349,37 +412,7 @@ void SelecMode(uint8_t isInit) {
 					Mode[4]);
 
 			//在LCD中显示按键信息
-			POINT_COLOR = RED;
-			switch (key) {
-			case ONE:
-				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "1");
-				break;
-			case TWO:
-				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "2");
-				break;
-			case THREE:
-				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "3");
-				break;
-			case FOUR:
-				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "4");
-				break;
-			case FIVE:
-				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "5");
-				break;
-			case SIX:
-				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "6");
-				break;
-			case SEVEN:
-				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "7");
-				break;
-			case EIGHT:
-				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "8");
-				break;
-			case NINE:
-				LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "9");
-				break;
-			}
-			POINT_COLOR = BLACK;
+			ShowMode(key);
 
 			continue;
 		} else if (key == DETER) {

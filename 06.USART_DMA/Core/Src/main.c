@@ -57,7 +57,8 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint8_t receive_buff[32] = {0};
-
+uint8_t coordinate_XY[32][2];
+uint8_t i = 0;
 
 /* USER CODE END 0 */
 
@@ -98,7 +99,11 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-
+		printf("coordinate_XY[0] = %x\r\n", coordinate_XY[0][0]);
+		printf("coordinate_XY[1] = %x\r\n", coordinate_XY[1][0]);
+		printf("coordinate_XY[2] = %x\r\n", coordinate_XY[2][0]);
+		printf("coordinate_XY[3] = %x\r\n", coordinate_XY[3][0]);
+		HAL_Delay(2000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
