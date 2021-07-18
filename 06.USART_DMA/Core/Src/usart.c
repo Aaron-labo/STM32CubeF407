@@ -23,7 +23,7 @@
 /* USER CODE BEGIN 0 */
 // 声明外部变量
 extern uint8_t receive_buff[32];
-extern uint8_t coordinate_XY[32][2];
+extern uint16_t coordinate_XY[32][2];
 extern uint8_t i;
 /* USER CODE END 0 */
 
@@ -54,7 +54,7 @@ void MX_USART1_UART_Init(void) {
 	}
 	/* USER CODE BEGIN USART1_Init 2 */
 	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);  // 使能串口空闲中断
-	HAL_UART_Receive_DMA(&huart1, (uint8_t*) receive_buff, 8); //设置DMA传输，将串口1的数据搬运到recvive_buff中，每次255个字节
+	HAL_UART_Receive_DMA(&huart1, (uint8_t*) receive_buff, 8); //设置DMA传输，将串口1的数据搬运到recvive_buff中，每次8个字节
 	/* USER CODE END USART1_Init 2 */
 
 }
@@ -91,7 +91,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle) {
 		hdma_usart1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
 		hdma_usart1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
 		hdma_usart1_rx.Init.Mode = DMA_CIRCULAR;
-		hdma_usart1_rx.Init.Priority = DMA_PRIORITY_HIGH;
+		hdma_usart1_rx.Init.Priority = DMA_PRIORITY_LOW;
 		hdma_usart1_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		if (HAL_DMA_Init(&hdma_usart1_rx) != HAL_OK) {
 			Error_Handler();
@@ -100,7 +100,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle) {
 		__HAL_LINKDMA(uartHandle, hdmarx, hdma_usart1_rx);
 
 		/* USART1 interrupt Init */
-		HAL_NVIC_SetPriority(USART1_IRQn, 1, 0);
+		HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(USART1_IRQn);
 		/* USER CODE BEGIN USART1_MspInit 1 */
 
@@ -134,33 +134,65 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *uartHandle) {
 	}
 }
 
+uint16_t asc2int(uint8_t huns, uint8_t tens, uint8_t ones)
+{
+	uint16_t number = (huns-48) * 100 + (tens-48) * 10 + (ones-48);
+	return number;
+}
+
 /* USER CODE BEGIN 1 */
 void USAR_UART_IDLECallback(UART_HandleTypeDef *huart) {
+	//数据传输的格式为abcd(x轴,y轴)ef   [abcd即0x61、0x62、0x63、0x64为字头，x轴和y轴信息本别占用三个字节，ef即0x65、0x66为字尾]
+	uint8_t start = 0, end = 0;
+	uint8_t isStart = 0;
 	// 停止本次DMA传输
 	HAL_UART_DMAStop(&huart1);
 
 	// 计算接收到的数据长度
 	uint8_t data_length = BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
 
-	// 测试函数：将接收到的数据打印出去
-	printf("Receive Data(length = %d): \r\n", data_length);
-	printf("receive_buff[0] = %x\r\n", receive_buff[0]);
-	printf("receive_buff[1] = %x\r\n", receive_buff[1]);
-	printf("receive_buff[2] = %x\r\n", receive_buff[2]);
-	printf("receive_buff[3] = %x\r\n", receive_buff[3]);
+	for (uint8_t i = 0; i < 32; i++) {
+		if (isStart == 0 && receive_buff[i] == 0x61) {
+			if (receive_buff[i] == 0x61 && receive_buff[i + 1] == 0x62
+					&& receive_buff[i + 2] == 0x63
+					&& receive_buff[i + 3] == 0x64) {
+				i += 4;
+				start = i;
+				isStart = 1;
+			}
+		}
+		if(isStart == 1 && receive_buff[i] == 0x65)
+		{
+			if(receive_buff[i] == 0x65 && receive_buff[i+1] == 0x66){
+				end = i - 1;
+				isStart = 2;
+			}
+		}
+	}
+	if (isStart == 2) {
+//		for (uint8_t i = start; i <= end; i++) {
+//			if (i == end) {
+//				printf("%x\r\n", receive_buff[i]);
+//			} else {
+//				printf("%x ", receive_buff[i]);
+//			}
+//		}
+		coordinate_XY[i][0] = asc2int(receive_buff[start], receive_buff[start+1], receive_buff[start+2]);
+		coordinate_XY[i][1] = asc2int(receive_buff[end-2], receive_buff[end-1], receive_buff[end]);
 
-	coordinate_XY[i][0] = receive_buff[0] + (receive_buff[1] << 8);
-	coordinate_XY[i][1] = receive_buff[2] + (receive_buff[3] << 8);
-	i++;
-	if (i >= 31) {
-		i = 0;
+//		printf("%d %d\r\n", coordinate_XY[i][0], coordinate_XY[i][1]);
+
+		i++;
+		if (i >= 31) {
+			i = 0;
+		}
 	}
 
-	// 清零接收缓冲区
+// 清零接收缓冲区
 	memset(receive_buff, 0, data_length);
 	data_length = 0;
 
-	// 重启开始DMA传输 每次255字节数据
+// 重启开始DMA传输 每次255字节数据
 	HAL_UART_Receive_DMA(&huart1, (uint8_t*) receive_buff, 32);
 }
 
@@ -169,7 +201,7 @@ void USER_UART_IRQHandler(UART_HandleTypeDef *huart) {	// 判断是否是串口1
 	if (USART1 == huart->Instance) {	// 判断是否是空闲中断
 		if (RESET != __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE)) {// 清除空闲中断标志（否则会一直不断进入中断）
 			__HAL_UART_CLEAR_IDLEFLAG(&huart1);
-			printf("UART1 Idle IQR Detected\r\n");
+//			printf("\r\nUART1 Idle IQR Detected\r\n");
 			// 调用中断处理函数
 			USAR_UART_IDLECallback(huart);
 		}

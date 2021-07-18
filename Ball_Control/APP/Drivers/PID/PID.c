@@ -19,12 +19,12 @@ void PID_Init(PID *pid) {
 	pid->angle = 90;
 	pid->integral = 0;
 
-	pid->PKp = 15;
-	pid->PKi = 0.5;
-	pid->PKd = 50.5;
-	pid->SKp = 20;
+	pid->PKp = 0.2;
+	pid->PKi = 0.015;
+	pid->PKd = 0;
+	pid->SKp = 0.2;
 	pid->SKi = 0.5;
-	pid->SKd = 35.0;
+	pid->SKd = 0.2;
 }
 
 //坐标PID调节函数(X轴)
@@ -48,7 +48,11 @@ uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed) {
 		pid->errorPosi[0] = -LOCAL_MAX;
 	}
 
-	pid->integral += pid->errorPosi[0];
+	//积分分离，即当差值太大时，不叠加积分
+	if (pid->errorPosi[0] <= 200) {
+		pid->integral += pid->errorPosi[0];
+	}
+
 	//位置式PID算法核心函数
 	pid->Speed = pid->PKp * pid->errorPosi[0] + pid->PKi * pid->integral
 			+ pid->PKd * (pid->errorPosi[0] - pid->errorPosi[1]);
@@ -87,6 +91,7 @@ void ChaSetPosi(PID *pid, uint16_t setPosi) {
 void PID_Reset(PID *pid) {
 	pid->integral = 0;
 	pid->Speed = 0;
+	pid->angle = 90;
 	pid->errorPosi[0] = 0;
 	pid->errorPosi[1] = 0;
 	pid->errorSpeed[0] = 0;

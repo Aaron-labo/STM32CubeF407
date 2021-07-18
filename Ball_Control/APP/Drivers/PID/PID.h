@@ -5,8 +5,8 @@
 
 #define LOCAL_MAX 200
 #define LOC_DEAD_ZONE 3 //死区范围
-#define ANGLE_MAX 180
-#define ANGLE_MIN 0
+#define ANGLE_MAX 130
+#define ANGLE_MIN 40
 
 typedef struct {
 	uint16_t SetPosi;  //定义设定值

@@ -44,7 +44,7 @@ extern DMA_HandleTypeDef hdma_usart1_tx;
 void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void USER_UART_IRQHandler(UART_HandleTypeDef *huart);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

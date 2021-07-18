@@ -17,7 +17,7 @@ uint8_t ActiveServo;
 uint8_t Angle = 0;
 
 void app_main_init(void) {
-	PCA9685_Init(&hi2c2);
+	PCA9685_Init(&hi2c1);
 	PCA9685_SetServoAngle(0, 90);
 	PCA9685_SetServoAngle(1, 90);
 //	PCA9685_SetServoAngle(2, 0);
@@ -39,16 +39,15 @@ void app_main(void) {
 //	ActiveServo++;
 //	if (ActiveServo >= SERVO_COUNT)
 //		ActiveServo = 0;
-//	for (uint8_t Angle = 0;; Angle += 10) {
-//		PCA9685_SetServoAngle(0, Angle);
-//		PCA9685_SetServoAngle(1, Angle);
-//		Angle += 10;
-//		if(Angle >= 180)
-//		{
-//			Angle = 0;
-//		}
-//		HAL_Delay(500);
-//	}
+	for (uint8_t Angle = 40;; Angle += 10) {
+		PCA9685_SetServoAngle(0, Angle);
+		PCA9685_SetServoAngle(1, Angle);
+		if(Angle > 120)
+		{
+			Angle = 40;
+		}
+		HAL_Delay(500);
+	}
 }
 
 // 须在头文件中添加 #include <stdio.h>
