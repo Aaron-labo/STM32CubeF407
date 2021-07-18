@@ -175,45 +175,115 @@ void ShowString() {
 }
 
 //LCD输出模式选择相关内容
-void ShowMode(uint8_t key) {
+void ShowMode(uint8_t key, uint8_t i) {
 	POINT_COLOR = RED; //输出字符为红色
-	switch (key) {
-	case STABLE:
-		LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "STABLE");
-		break;
-	case MOVE:
-		LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "MOVE  ");
-		break;
-	case ROUND:
-		LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "ROUND ");
-		break;
-	case ONE:
-		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "1");
-		break;
-	case TWO:
-		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "2");
-		break;
-	case THREE:
-		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "3");
-		break;
-	case FOUR:
-		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "4");
-		break;
-	case FIVE:
-		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "5");
-		break;
-	case SIX:
-		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "6");
-		break;
-	case SEVEN:
-		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "7");
-		break;
-	case EIGHT:
-		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "8");
-		break;
-	case NINE:
-		LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "9");
-		break;
+
+	if (i == 0xff) {
+		switch (key) {
+		case STABLE:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "STABLE");
+			break;
+		case MOVE:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "MOVE  ");
+			break;
+		case ROUND:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "ROUND ");
+			break;
+		case ONE:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "ONE   ");
+			break;
+		case TWO:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "TWO   ");
+			break;
+		case THREE:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "THREE ");
+			break;
+		case FOUR:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "FOUR  ");
+			break;
+		case FIVE:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "FIVE  ");
+			break;
+		case SIX:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "SIX   ");
+			break;
+		case SEVEN:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "SEVEN ");
+			break;
+		case EIGHT:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "EIGHT ");
+			break;
+		case NINE:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "NINE  ");
+			break;
+		case ZERO:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "ZERO  ");
+			break;
+		case DETER:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "DETER ");
+			break;
+		case RESET:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "RESET ");
+			break;
+		case CANCEL:
+			LCD_DrawRectangle(340, 590, 455, 642);
+			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "CANCEL");
+			break;
+		}
+	} else {
+		switch (key) {
+		case STABLE:
+			LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "STABLE");
+			break;
+		case MOVE:
+			LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "MOVE  ");
+			break;
+		case ROUND:
+			LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "ROUND ");
+			break;
+		case ONE:
+			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "1");
+			break;
+		case TWO:
+			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "2");
+			break;
+		case THREE:
+			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "3");
+			break;
+		case FOUR:
+			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "4");
+			break;
+		case FIVE:
+			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "5");
+			break;
+		case SIX:
+			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "6");
+			break;
+		case SEVEN:
+			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "7");
+			break;
+		case EIGHT:
+			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "8");
+			break;
+		case NINE:
+			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "9");
+			break;
+		}
 	}
 	POINT_COLOR = BLACK; //将字符恢复为黑色
 }
@@ -327,8 +397,7 @@ void ModeRound(void) {
 		ballSpeed();
 
 		//当当前位置与目标位置间距小于20，目标坐标角度增加10度
-		if(distance <= 20)
-		{
+		if (distance <= 20) {
 			zita += 10;
 		}
 
@@ -387,7 +456,7 @@ void SelecMode(uint8_t isInit) {
 					Mode[4]);
 
 			//在LCD中显示按键信息
-			ShowMode(key);
+			ShowMode(key, i);
 
 			continue;
 		} else if (key == DETER) {
@@ -399,6 +468,7 @@ void SelecMode(uint8_t isInit) {
 			for (i = 0; i <= 4; i++) { //按下复位键后，将模式缓存区中的信息清零
 				Mode[i] = 0;
 			}
+			LCD_Fill(30, 700, 400, 750, WHITE);
 			i = -1; //i=-1,进入下一个循环后，会自动加一，即从0重新开始
 			printf("复位\r\n");
 			continue;
@@ -412,7 +482,7 @@ void SelecMode(uint8_t isInit) {
 					Mode[4]);
 
 			//在LCD中显示按键信息
-			ShowMode(key);
+			ShowMode(key, i);
 
 			continue;
 		} else if (key == DETER) {
@@ -424,6 +494,7 @@ void SelecMode(uint8_t isInit) {
 			for (i = 0; i <= 4; i++) {		   //按下复位键后，将模式缓存区中的信息清零
 				Mode[i] = 0;
 			}
+			LCD_Fill(30, 700, 400, 750, WHITE);
 			i = -1;		   //i=-1,进入下一个循环后，会自动加一，即从0重新开始
 			printf("复位\r\n");
 			continue;

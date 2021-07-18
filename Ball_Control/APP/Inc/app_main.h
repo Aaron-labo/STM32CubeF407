@@ -12,7 +12,8 @@
 
 void app_main_init(void);
 void app_main(void);
-void SelecMode(uint8_t isInit) ;
+void SelecMode(uint8_t isInit);
+void ShowMode(uint8_t key, uint8_t i);
 
 #ifdef DEBUG
 //#define print(format, ...) printf( format "\r\n",##__VA_ARGS__)

@@ -129,6 +129,9 @@ uint8_t keyboard_scan(void) {
 		return NOPRES;
 	}
 	lastnum = keynum;
+
+	ShowMode(keynum, 0xff);
+
 	return keynum;
 }
 
