@@ -10041,6 +10041,8 @@ void ShowMode(uint8_t key, uint8_t i) {
  8005366:	f44f 4278 	mov.w	r2, #63488	; 0xf800
  800536a:	601a      	str	r2, [r3, #0]
 
+	//没按下一个键，在LCD上显示按键信息
+	//i == 0xff则表示输出每个按键信息
 	if (i == 0xff) {
  800536c:	79bb      	ldrb	r3, [r7, #6]
  800536e:	2bff      	cmp	r3, #255	; 0xff
@@ -10391,6 +10393,7 @@ void ShowMode(uint8_t key, uint8_t i) {
  80056e4:	0800f648 	.word	0x0800f648
 		}
 	} else {
+		//若i不为0xff则表示显示Mode模式缓存区中的信息
 		switch (key) {
  80056e8:	79fb      	ldrb	r3, [r7, #7]
  80056ea:	3b01      	subs	r3, #1

@@ -178,6 +178,8 @@ void ShowString() {
 void ShowMode(uint8_t key, uint8_t i) {
 	POINT_COLOR = RED; //输出字符为红色
 
+	//没按下一个键，在LCD上显示按键信息
+	//i == 0xff则表示输出每个按键信息
 	if (i == 0xff) {
 		switch (key) {
 		case STABLE:
@@ -246,6 +248,7 @@ void ShowMode(uint8_t key, uint8_t i) {
 			break;
 		}
 	} else {
+		//若i不为0xff则表示显示Mode模式缓存区中的信息
 		switch (key) {
 		case STABLE:
 			LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "STABLE");
