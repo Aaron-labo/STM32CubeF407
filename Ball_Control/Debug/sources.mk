@@ -20,11 +20,13 @@ OBJCOPY_BIN :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-APP/Drivers/KeyBoard \
-APP/Drivers/LCD \
+APP/Drivers/BEEP \
 APP/Drivers/MPU6050 \
+APP/Drivers/OLED \
 APP/Drivers/PCA9685 \
 APP/Drivers/PID \
+APP/Drivers/REMOTE \
+APP/Drivers/USART_DMA \
 APP/Drivers/host_computer \
 APP/Src \
 Core/Src \

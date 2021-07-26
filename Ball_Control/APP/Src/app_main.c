@@ -7,18 +7,16 @@
 
 #include "app_main.h"
 #include "i2c.h"
+#include "spi.h"
 #include "usart.h"
 #include "gpio.h"
-#include "fsmc.h"
 #include "math.h"
 #include "tim.h"
 
-#include "lcd.h"
-#include "host_computer.h"
-#include "mpu6050.h"
 #include "pca9685.h"
 #include "PID.h"
-#include "keyboard.h"
+#include "ssd1306.h"
+#include "remote.h"
 
 #define FRAME 50  //设置摄像头帧率为50
 #define RESOLUTION 10 //即10个像素点表示1cm
@@ -69,39 +67,39 @@ void ballSpeed() {
 //长宽均为400
 void GetSetPosi(uint16_t *SetPosi, uint8_t number) {
 	switch (number) {
-	case 1:
+	case ONE:
 		SetPosi[0] = 80;
 		SetPosi[1] = 80;
 		break;
-	case 2:
+	case TWO:
 		SetPosi[0] = 200;
 		SetPosi[1] = 80;
 		break;
-	case 3:
+	case THREE:
 		SetPosi[0] = 320;
 		SetPosi[1] = 80;
 		break;
-	case 5:
+	case FOUR:
 		SetPosi[0] = 80;
 		SetPosi[1] = 200;
 		break;
-	case 6:
+	case FIVE:
 		SetPosi[0] = 200;
 		SetPosi[1] = 200;
 		break;
-	case 7:
+	case SIX:
 		SetPosi[0] = 320;
 		SetPosi[1] = 200;
 		break;
-	case 9:
+	case SEVEN:
 		SetPosi[0] = 80;
 		SetPosi[1] = 320;
 		break;
-	case 10:
+	case EIGHT:
 		SetPosi[0] = 200;
 		SetPosi[1] = 320;
 		break;
-	case 11:
+	case NINE:
 		SetPosi[0] = 320;
 		SetPosi[1] = 320;
 		break;
@@ -110,185 +108,162 @@ void GetSetPosi(uint16_t *SetPosi, uint8_t number) {
 
 //LCD显示函数，isInit=1表示在初始化中调用
 void ShowString() {
-	uint8_t Buffer[32]; //输出文本暂存区
+	char Buffer[32]; //输出文本暂存区
 
-//	print("\r\nKalmanAngleX:%.2f\r\nKalmanAngleY:%.2f\r\n",
-//			MPU6050.KalmanAngleX, MPU6050.KalmanAngleY);
-//	//LCD输出平台欧拉角
-//	sprintf((char*) Buffer, "KalmanAngleX:%7.2f", MPU6050.KalmanAngleX);
-//	LCD_ShowString(30, 100, 400, 32, 32, Buffer);
-//	sprintf((char*) Buffer, "KalmanAngleY:%7.2f", MPU6050.KalmanAngleY);
-//	LCD_ShowString(30, 150, 400, 32, 32, Buffer);
-
-	//输出实验标题
-	LCD_ShowString(42, 30, 400, 48, 48, (uint8_t*) "Rolling Ball");
-	LCD_ShowString(40, 90, 400, 48, 48, (uint8_t*) "Control System");
-	//LCD输出舵机当前角度
-	sprintf((char*) Buffer, "Angle_X:%6.2f", pid_X.angle);
-	LCD_ShowString(30, 150, 400, 32, 32, Buffer);
-	sprintf((char*) Buffer, "Angle_Y:%6.2f", pid_Y.angle);
-	LCD_ShowString(30, 200, 400, 32, 32, Buffer);
-
-	//LCD输出设定球坐标(包括位置期望和当前位置)
-	sprintf((char*) Buffer, "Set_XY   :(%4d, %4d)", SetPosi[0], SetPosi[1]);
-	LCD_ShowString(30, 270, 400, 32, 32, Buffer);
-	//LCD输出当前球坐标，若球的位置达到要求，则输出黑色文字，否则输出红色文字
-	if (distance <= 30) {
-		POINT_COLOR = RED;
-	} else {
-		POINT_COLOR = BLACK;
-	}
-	sprintf((char*) Buffer, "Actual_XY:(%4d, %4d)", coordinate_XY[i][0],
+	ssd1306_DrawRectangle(85, 21, 125, 31, White);
+	ssd1306_DrawRectangle(85, 32, 125, 52, White);
+	//OLED输出设定球坐标(包括位置期望和当前位置)
+	sprintf(Buffer, "Set_XY:(%3d,%3d)", SetPosi[0], SetPosi[1]);
+	ssd1306_SetCursor(5, 5);
+	ssd1306_WriteString(Buffer, Font_6x8, White);
+	//OLED输出当前球坐标
+	sprintf(Buffer, "Act_XY:(%3d,%3d)", coordinate_XY[i][0],
 			coordinate_XY[i][1]);
-	LCD_ShowString(30, 320, 400, 32, 32, Buffer);
-	POINT_COLOR = BLACK;
-	//LCD输出间距
+	ssd1306_SetCursor(5, 13);
+	ssd1306_WriteString(Buffer, Font_6x8, White);
 
-	sprintf((char*) Buffer, "Distance :%5.2f", distance);
-	LCD_ShowString(30, 370, 400, 32, 32, Buffer);
+	sprintf(Buffer, "Dis:%6.2f", distance);
+	ssd1306_SetCursor(5, 21);
+	ssd1306_WriteString(Buffer, Font_6x8, White);
 
-	//LCD输出设定球速度(包括速度期望和当前速度)
-	sprintf((char*) Buffer, "Expect_Speed:%7.2f",
+	//OLED输出设定球速度(包括速度期望和当前速度)
+	sprintf(Buffer, "Exp_Sp:%5.2f",
 			sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed));
-	LCD_ShowString(30, 440, 400, 32, 32, Buffer);
-	//LCD输出当前球速度，若球的速度达到要求，则输出黑色文字，否则输出红色文字
-	if (sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed) - speed
-			<= 1
-			&& sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed)
-					- speed >= -1) {
-		POINT_COLOR = RED;
-	} else {
-		POINT_COLOR = BLACK;
-	}
-	sprintf((char*) Buffer, "Actual_Speed:%7.2f", speed);
-	LCD_ShowString(30, 490, 400, 32, 32, Buffer);
-	POINT_COLOR = BLACK;
+	ssd1306_SetCursor(5, 29);
+	ssd1306_WriteString(Buffer, Font_6x8, White);
+	//OLED输出当前球速度
+	sprintf(Buffer, "Act_Sp:%5.2f", speed);
+	ssd1306_SetCursor(5, 37);
+	ssd1306_WriteString(Buffer, Font_6x8, White);
 
-	//LCD输出耗费时间
-	sprintf((char*) Buffer, "Total Time:%5.2f",
+	//OLED输出耗费时间
+	sprintf(Buffer, "Tot_Ti:%5.2f",
 	__HAL_TIM_GET_COUNTER(&htim5) * 1.0 / 10000);
-	LCD_ShowString(30, 560, 400, 32, 32, Buffer);
-	sprintf((char*) Buffer, "Stable Time:%5.2f",
+	ssd1306_SetCursor(5, 45);
+	ssd1306_WriteString(Buffer, Font_6x8, White);
+	sprintf(Buffer, "Sta_Ti:%5.2f",
 	__HAL_TIM_GET_COUNTER(&htim2) * 1.0 / 10000);
-	LCD_ShowString(30, 610, 400, 32, 32, Buffer);
+	ssd1306_SetCursor(5, 53);
+	ssd1306_WriteString(Buffer, Font_6x8, White);
 
+	ssd1306_UpdateScreen();
 }
 
 //LCD输出模式选择相关内容
 void ShowMode(uint8_t key, uint8_t i) {
-	POINT_COLOR = RED; //输出字符为红色
 
 	//没按下一个键，在LCD上显示按键信息
 	//i == 0xff则表示输出每个按键信息
 	if (i == 0xff) {
+
+		ssd1306_SetCursor(88, 23);
 		switch (key) {
 		case STABLE:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "STABLE");
+			ssd1306_WriteString("STABLE", Font_6x8, White);
 			break;
 		case MOVE:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "MOVE  ");
+			ssd1306_WriteString("MOVE  ", Font_6x8, White);
 			break;
 		case ROUND:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "ROUND ");
+			ssd1306_WriteString("ROUND ", Font_6x8, White);
 			break;
 		case ONE:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "ONE   ");
+			ssd1306_WriteString("ONE   ", Font_6x8, White);
 			break;
 		case TWO:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "TWO   ");
+			ssd1306_WriteString("TWO   ", Font_6x8, White);
 			break;
 		case THREE:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "THREE ");
+			ssd1306_WriteString("THREE ", Font_6x8, White);
 			break;
 		case FOUR:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "FOUR  ");
+			ssd1306_WriteString("FOUR  ", Font_6x8, White);
 			break;
 		case FIVE:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "FIVE  ");
+			ssd1306_WriteString("FIVE  ", Font_6x8, White);
 			break;
 		case SIX:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "SIX   ");
+			ssd1306_WriteString("SIX   ", Font_6x8, White);
 			break;
 		case SEVEN:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "SEVEN ");
+			ssd1306_WriteString("SEVEN ", Font_6x8, White);
 			break;
 		case EIGHT:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "EIGHT ");
+			ssd1306_WriteString("EIGHT ", Font_6x8, White);
 			break;
 		case NINE:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "NINE  ");
+			ssd1306_WriteString("NINE  ", Font_6x8, White);
 			break;
 		case ZERO:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "ZERO  ");
+			ssd1306_WriteString("ZERO  ", Font_6x8, White);
 			break;
 		case DETER:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "DETER ");
+			ssd1306_WriteString("DETER ", Font_6x8, White);
 			break;
-		case RESET:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "RESET ");
+		case REPLACE:
+			ssd1306_WriteString("REPLACE ", Font_6x8, White);
 			break;
 		case CANCEL:
-			LCD_DrawRectangle(340, 590, 455, 642);
-			LCD_ShowString(350, 600, 130, 32, 32, (uint8_t*) "CANCEL");
+			ssd1306_WriteString("CANCEL", Font_6x8, White);
 			break;
+		case INIT:
+			ssd1306_WriteString("INIT  ", Font_6x8, White);
 		}
 	} else {
 		//若i不为0xff则表示显示Mode模式缓存区中的信息
 		switch (key) {
 		case STABLE:
-			LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "STABLE");
+
+			ssd1306_SetCursor(88, 35);
+			ssd1306_WriteString("STABLE", Font_6x8, White);
 			break;
 		case MOVE:
-			LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "MOVE  ");
+			ssd1306_SetCursor(88, 35);
+			ssd1306_WriteString("MOVE  ", Font_6x8, White);
 			break;
 		case ROUND:
-			LCD_ShowString(30, 700, 130, 48, 48, (uint8_t*) "ROUND ");
+			ssd1306_SetCursor(88, 35);
+			ssd1306_WriteString("ROUND ", Font_6x8, White);
 			break;
 		case ONE:
-			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "1");
+			ssd1306_SetCursor(83 + 8 * i, 44);
+			ssd1306_WriteString("1", Font_6x8, White);
 			break;
 		case TWO:
-			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "2");
+			ssd1306_SetCursor(83 + 8 * i, 44);
+			ssd1306_WriteString("2", Font_6x8, White);
 			break;
 		case THREE:
-			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "3");
+			ssd1306_SetCursor(83 + 8 * i, 44);
+			ssd1306_WriteString("3", Font_6x8, White);
 			break;
 		case FOUR:
-			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "4");
+			ssd1306_SetCursor(83 + 8 * i, 44);
+			ssd1306_WriteString("4", Font_6x8, White);
 			break;
 		case FIVE:
-			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "5");
+			ssd1306_SetCursor(83 + 8 * i, 44);
+			ssd1306_WriteString("5", Font_6x8, White);
 			break;
 		case SIX:
-			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "6");
+			ssd1306_SetCursor(83 + 8 * i, 44);
+			ssd1306_WriteString("6", Font_6x8, White);
 			break;
 		case SEVEN:
-			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "7");
+			ssd1306_SetCursor(83 + 8 * i, 44);
+			ssd1306_WriteString("7", Font_6x8, White);
 			break;
 		case EIGHT:
-			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "8");
+			ssd1306_SetCursor(83 + 8 * i, 44);
+			ssd1306_WriteString("8", Font_6x8, White);
 			break;
 		case NINE:
-			LCD_ShowString(180 + 50 * i, 700, 130, 48, 48, (uint8_t*) "9");
+			ssd1306_SetCursor(83 + 8 * i, 44);
+			ssd1306_WriteString("9", Font_6x8, White);
 			break;
 		}
 	}
-	POINT_COLOR = BLACK; //将字符恢复为黑色
+	ssd1306_UpdateScreen();
 }
 
 //模式1：稳定模式
@@ -319,7 +294,7 @@ void ModeMove(void) {
 	while (Mode[count] != 0) {
 		count++;
 	}
-
+g
 	for (uint8_t i = 1; i < count;) {
 
 		//确定目的坐标
@@ -375,7 +350,7 @@ void ModeMove(void) {
 		PCA9685_SetServoAngle(0, pid_X.angle);
 		PCA9685_SetServoAngle(1, pid_Y.angle);
 
-		ShowString(0);
+		ShowString();
 	}
 }
 
@@ -415,7 +390,93 @@ void ModeRound(void) {
 		if (zita == 360) {
 			zita = 0;
 		}
+		ShowString();
 	}
+}
+
+void SelfInspection(void) {
+	PCA9685_SetServoAngle(0, 90);
+	PCA9685_SetServoAngle(1, 90);
+	HAL_Delay(1000);
+
+	PCA9685_SetServoAngle(0, 40);
+	PCA9685_SetServoAngle(1, 40);
+	HAL_Delay(400);
+
+	PCA9685_SetServoAngle(0, 140);
+	PCA9685_SetServoAngle(1, 140);
+	HAL_Delay(400);
+
+	PCA9685_SetServoAngle(0, 40);
+	PCA9685_SetServoAngle(1, 140);
+	HAL_Delay(400);
+
+	PCA9685_SetServoAngle(0, 140);
+	PCA9685_SetServoAngle(1, 40);
+	HAL_Delay(1000);
+
+//	for (float Angle = 40; Angle <= 140; Angle += 0.005) {
+//		PCA9685_SetServoAngle(0, Angle);
+//		PCA9685_SetServoAngle(1, Angle);
+//	}
+//
+//	for (float Angle = 140; Angle >= 40; Angle -= 0.005) {
+//		PCA9685_SetServoAngle(0, Angle);
+//		PCA9685_SetServoAngle(1, Angle);
+//	}
+//
+//	for (float Angle = 40; Angle <= 140; Angle += 0.005) {
+//		PCA9685_SetServoAngle(0, Angle);
+//		PCA9685_SetServoAngle(1, 180 - Angle);
+//	}
+//
+//	for (float Angle = 140; Angle >= 40; Angle -= 0.005) {
+//		PCA9685_SetServoAngle(0, Angle);
+//		PCA9685_SetServoAngle(1, 180 - Angle);
+//	}
+//	HAL_Delay(400);
+
+	PCA9685_SetServoAngle(0, 70);
+	PCA9685_SetServoAngle(1, 70);
+	HAL_Delay(400);
+
+	PCA9685_SetServoAngle(0, 110);
+	PCA9685_SetServoAngle(1, 110);
+	HAL_Delay(400);
+
+	PCA9685_SetServoAngle(0, 70);
+	PCA9685_SetServoAngle(1, 110);
+	HAL_Delay(400);
+
+	PCA9685_SetServoAngle(0, 110);
+	PCA9685_SetServoAngle(1, 70);
+	HAL_Delay(1000);
+
+//	for (float Angle = 70; Angle <= 110; Angle += 0.005) {
+//		PCA9685_SetServoAngle(0, Angle);
+//		PCA9685_SetServoAngle(1, Angle);
+//	}
+//
+//	for (float Angle = 110; Angle >= 70; Angle -= 0.005) {
+//		PCA9685_SetServoAngle(0, Angle);
+//		PCA9685_SetServoAngle(1, Angle);
+//	}
+//
+//	for (float Angle = 70; Angle <= 110; Angle += 0.005) {
+//		PCA9685_SetServoAngle(0, Angle);
+//		PCA9685_SetServoAngle(1, 180 - Angle);
+//	}
+//
+//	for (float Angle = 110; Angle >= 70; Angle -= 0.005) {
+//		PCA9685_SetServoAngle(0, Angle);
+//		PCA9685_SetServoAngle(1, 180 - Angle);
+//	}
+//	HAL_Delay(400);
+
+	HAL_Delay(1000);
+	PCA9685_SetServoAngle(0, 90);
+	PCA9685_SetServoAngle(1, 90);
+	HAL_Delay(1000);
 }
 
 //选择模式,isInit=1表示在初始化中调用
@@ -427,11 +488,25 @@ void SelecMode(uint8_t isInit) {
 		Mode[i] = 0;
 	}
 
+	HAL_TIM_Base_Start_IT(&htim1);     //定时器更新时、产生中断
+	HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);    //启动输入捕获中断
+
 	printf("请选择模式:(模式+格点)\r\n如：从1经过2，3至6 ---------- 移动+1+2+3+6\r\n");
-	for (uint8_t i = 0; i < 6; i++) {
-		while ((key = keyboard_scan()) == NOPRES)
+	for (int i = 0; i < 6; i++) {
+		while ((key = Remote_Scan()) == NOPRES)
 			//等待按键输入
 			;
+
+		if (key == ZERO) {
+			SelfInspection();
+			i -= 1;
+			continue;
+		} else if (key == INIT) {
+			PCA9685_SetServoAngle(0, 90);
+			PCA9685_SetServoAngle(1, 90);
+			i -= 1;
+			continue;
+		}
 
 		/*
 		 * 若输入格式不符合要求，则重新输入
@@ -467,19 +542,24 @@ void SelecMode(uint8_t isInit) {
 			PID_Reset(&pid_X);		   //并重置PID信息
 			PID_Reset(&pid_Y);
 			break;
-		} else if (key == RESET) {
+		} else if (key == REPLACE) {
 			for (i = 0; i <= 4; i++) { //按下复位键后，将模式缓存区中的信息清零
 				Mode[i] = 0;
 			}
-			LCD_Fill(30, 700, 400, 750, WHITE);
+			ssd1306_SetCursor(88, 35);
+			ssd1306_WriteString("      ", Font_6x8, White);
+			ssd1306_SetCursor(88, 44);
+			ssd1306_WriteString("      ", Font_6x8, White);
+			ssd1306_UpdateScreen();
 			i = -1; //i=-1,进入下一个循环后，会自动加一，即从0重新开始
 			printf("复位\r\n");
 			continue;
 		}
 
 		//判断格式输入是否正确
-		if ((key >= ONE && key <= THREE) || (key >= FOUR && key <= SIX)
-				|| (key >= SEVEN && key <= NINE)) {
+		if (key == ONE || key == TWO || key == THREE || key == FOUR
+				|| key == FIVE || key == SIX || key == SEVEN || key == EIGHT
+				|| key == NINE) {
 			Mode[i] = key; //若输入符合要求，则将键值存入模式缓存区中
 			printf("%d  %d  %d  %d  %d\r\n", Mode[0], Mode[1], Mode[2], Mode[3],
 					Mode[4]);
@@ -493,11 +573,15 @@ void SelecMode(uint8_t isInit) {
 			PID_Reset(&pid_X);		   //并重置PID信息
 			PID_Reset(&pid_Y);
 			break;
-		} else if (key == RESET) {
+		} else if (key == REPLACE) {
 			for (i = 0; i <= 4; i++) {		   //按下复位键后，将模式缓存区中的信息清零
 				Mode[i] = 0;
 			}
-			LCD_Fill(30, 700, 400, 750, WHITE);
+			ssd1306_SetCursor(88, 35);
+			ssd1306_WriteString("      ", Font_6x8, White);
+			ssd1306_SetCursor(88, 44);
+			ssd1306_WriteString("      ", Font_6x8, White);
+			ssd1306_UpdateScreen();
 			i = -1;		   //i=-1,进入下一个循环后，会自动加一，即从0重新开始
 			printf("复位\r\n");
 			continue;
@@ -520,23 +604,18 @@ void SelecMode(uint8_t isInit) {
 			i -= 1;
 		}
 	}
+	HAL_TIM_Base_Stop_IT(&htim1);     //停止定时器更新时、产生中断
+	HAL_TIM_IC_Stop_IT(&htim1, TIM_CHANNEL_1);    //关闭输入捕获中断
 }
 
 //初始化函数
 void app_main_init(void) {
-	//LCD初始化
-	TFTLCD_Init();
-	LCD_Clear(WHITE);
-	POINT_COLOR = BLACK;
+	//OLED初始化
+	ssd1306_Init();
+	ssd1306_Fill(Black);
 
-//	//MPU6050初始化,判断MPU6050是否正常连接
-//	while (MPU6050_Init(&hi2c1) == 1)
-//		;
-
-	//PCA9685初始化,将通道一和通道二(本次需要使用这两个通道)的角度初始化为0
+	//PCA9685初始化,将通道一和通道二(本次需要使用这两个通道)的角度初始化
 	PCA9685_Init(&hi2c1);
-	PCA9685_SetServoAngle(0, 90);
-	PCA9685_SetServoAngle(1, 90);
 
 	//显示信息
 	ShowString();
@@ -559,14 +638,6 @@ void app_main(void) {
 	} else if (Mode[0] == ROUND) {
 		ModeRound();
 	}
-
-//	MPU6050_Read_All(&hi2c1, &MPU6050);
-	//	mpu6050_send_data((float)MPU6050.KalmanAngleX, (float)MPU6050.KalmanAngleY, 0, 0, 0, 0);
-//	usart1_report_imu(MPU6050.Accel_X_RAW, MPU6050.Accel_Y_RAW,
-//			MPU6050.Accel_Z_RAW, MPU6050.Gyro_X_RAW, MPU6050.Gyro_Y_RAW,
-//			MPU6050.Gyro_Z_RAW, (float) MPU6050.KalmanAngleX * 100,
-//			(float) MPU6050.KalmanAngleY * 100, 0);
-	//	print("\r\nKalmanAngleX:%.2f\r\nKalmanAngleY:%.2f\r\n", MPU6050.KalmanAngleX, MPU6050.KalmanAngleY);
 }
 
 // 须在头文件中添加 #include <stdio.h>

@@ -13,8 +13,7 @@ RM := rm -rf
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include APP/Src/subdir.mk
--include APP/Drivers/LCD/subdir.mk
--include APP/Drivers/IRMP/subdir.mk
+-include APP/Drivers/REMOTE/subdir.mk
 -include APP/Drivers/BEEP/subdir.mk
 -include subdir.mk
 -include objects.mk

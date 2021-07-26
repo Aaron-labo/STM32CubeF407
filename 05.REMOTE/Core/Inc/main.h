@@ -58,8 +58,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define IRMP_Pin GPIO_PIN_8
-#define IRMP_GPIO_Port GPIOA
+#define BEEP_Pin GPIO_PIN_8
+#define BEEP_GPIO_Port GPIOF
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -1,14 +1,3 @@
-/*
- * pca9685.c
- *
- *  Created on: 20.01.2019
- *      Author: Mateusz Salamon
- *		mateusz@msalamon.pl
- *
- *      Website: https://msalamon.pl/nigdy-wiecej-multipleksowania-na-gpio!-max7219-w-akcji-cz-3/
- *      GitHub:  https://github.com/lamik/Servos_PWM_STM32_HAL
- */
-
 #include "main.h"
 #include "i2c.h"
 

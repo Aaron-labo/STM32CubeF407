@@ -14,11 +14,13 @@ RM := rm -rf
 -include Core/Src/subdir.mk
 -include APP/Src/subdir.mk
 -include APP/Drivers/host_computer/subdir.mk
+-include APP/Drivers/USART_DMA/subdir.mk
+-include APP/Drivers/REMOTE/subdir.mk
 -include APP/Drivers/PID/subdir.mk
 -include APP/Drivers/PCA9685/subdir.mk
+-include APP/Drivers/OLED/subdir.mk
 -include APP/Drivers/MPU6050/subdir.mk
--include APP/Drivers/LCD/subdir.mk
--include APP/Drivers/KeyBoard/subdir.mk
+-include APP/Drivers/BEEP/subdir.mk
 -include subdir.mk
 -include objects.mk
 

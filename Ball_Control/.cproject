@@ -106,6 +106,14 @@
                                     <listOptionValue builtIn="false" value="../APP/Drivers/PID"/>
                                     									
                                     <listOptionValue builtIn="false" value="../APP/Drivers/KeyBoard"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="../APP/USART_DMA"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="../APP/Drivers/OLED"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="../APP/Drivers/REMOTE"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="../APP/Drivers/BEEP"/>
                                     								
                                 </option>
                                 								

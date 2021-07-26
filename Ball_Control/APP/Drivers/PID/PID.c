@@ -19,12 +19,12 @@ void PID_Init(PID *pid) {
 	pid->angle = 90;
 	pid->integral = 0;
 
-	pid->PKp = 0.2;
-	pid->PKi = 0.015;
+	pid->PKp = 0.5;
+	pid->PKi = 0;
 	pid->PKd = 0;
-	pid->SKp = 0.2;
-	pid->SKi = 0.5;
-	pid->SKd = 0.2;
+	pid->SKp = 35;
+	pid->SKi = 0;
+	pid->SKd = 0;
 }
 
 //坐标PID调节函数(X轴)

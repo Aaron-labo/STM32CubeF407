@@ -15,8 +15,10 @@
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  printf("%ld\r\n",  __HAL_TIM_GET_COUNTER(&htim2));
-  __HAL_TIM_SET_COUNTER(&htim2,0);
+	if(htim->Instance == TIM2){
+		LED0_Tog();
+		  printf("定时器中断......\r\n");
+	}
 }
 
 void app_main_init() {

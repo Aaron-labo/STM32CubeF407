@@ -25,10 +25,10 @@
 /* USER CODE BEGIN Includes */
 #include "usart.h"
 #include "app_main.h"
-#include "keyboard.h"
+#include "remote.h"
 #include "pca9685.h"
 #include "tim.h"
-#include "lcd.h"
+#include "ssd1306.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,6 +62,7 @@ extern uint8_t Mode[6];
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern UART_HandleTypeDef huart1;
@@ -218,19 +219,51 @@ void EXTI0_IRQHandler(void)
   /* USER CODE BEGIN EXTI0_IRQn 1 */
 	HAL_Delay(20);
 	if (KY_UP == GPIO_PIN_SET) {
-		printf("KY_UP按键按下。。。。。\r\n");
 		HAL_TIM_Base_Stop(&htim5);
 		__HAL_TIM_SET_COUNTER(&htim5, 0);
-		LCD_Fill(30, 700, 400, 750, WHITE);
+		ssd1306_SetCursor(88, 35);
+		ssd1306_WriteString("      ", Font_6x8, White);
+		ssd1306_SetCursor(88, 44);
+		ssd1306_WriteString("      ", Font_6x8, White);
+		ssd1306_UpdateScreen();
 		//让舵机角度再次回到初始值
 		PCA9685_SetServoAngle(0, 90);
 		PCA9685_SetServoAngle(1, 90);
 
 		//使用矩形键盘设置模式
 		SelecMode(0);
-		printf("%d  %d  %d  %d  %d\r\n", Mode[0], Mode[1], Mode[2], Mode[3], Mode[4]);
+		printf("%d  %d  %d  %d  %d\r\n", Mode[0], Mode[1], Mode[2], Mode[3],
+				Mode[4]);
 	}
   /* USER CODE END EXTI0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM1 update interrupt and TIM10 global interrupt.
+  */
+void TIM1_UP_TIM10_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 0 */
+
+  /* USER CODE END TIM1_UP_TIM10_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim1);
+  /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
+
+  /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM1 capture compare interrupt.
+  */
+void TIM1_CC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM1_CC_IRQn 0 */
+
+  /* USER CODE END TIM1_CC_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim1);
+  /* USER CODE BEGIN TIM1_CC_IRQn 1 */
+
+  /* USER CODE END TIM1_CC_IRQn 1 */
 }
 
 /**
