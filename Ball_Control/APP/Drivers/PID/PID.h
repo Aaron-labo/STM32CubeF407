@@ -3,10 +3,17 @@
 
 #include "main.h"
 
-#define LOCAL_MAX 200
+#define LOCAL_MAX 150
 #define LOC_DEAD_ZONE 3 //死区范围
-#define ANGLE_MAX 110
-#define ANGLE_MIN 70
+#define ANGLE_MAX1 100
+#define ANGLE_MIN1 80
+#define ANGLE_MAX2 110
+#define ANGLE_MIN2 70
+#define ANGLE_MAX3 120
+#define ANGLE_MIN3 60
+#define ANGLE_MAX4 130
+#define ANGLE_MIN4 50
+#define DANGLE_MAX 0.7
 
 typedef struct {
 	uint16_t SetPosi;  //定义设定值

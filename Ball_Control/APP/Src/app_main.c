@@ -18,7 +18,7 @@
 #include "ssd1306.h"
 #include "remote.h"
 
-#define FRAME 50  //设置摄像头帧率为50
+#define FRAME 10  //设置摄像头帧率为50
 #define RESOLUTION 10 //即10个像素点表示1cm
 #define LEN 32
 
@@ -36,11 +36,13 @@ PID pid_X, pid_Y;  //PID结构体,分别表示X,Y坐标
 uint8_t Mode[6] = { 0 }; //模式选择缓存区
 uint8_t i = 0; //用于存放模式选择缓存区的向量
 
+float tim;
+
 //计算小球速度
 void ballSpeed() {
 	float distanceX, distanceY, distanceIns; //用于存放X，Y方向上的间距
 	uint8_t j = 0;
-	j = (i - 10) ? (i >= 10) : (i - 10 + LEN);  //使用当前帧的坐标和10帧前的坐标计算瞬时速度
+	j = (i - 1) ? (i >= 1) : (i - 1 + LEN);  //使用当前帧的坐标和10帧前的坐标计算瞬时速度
 	//计算瞬时的X方向、Y方向和总间距
 	distanceX = (coordinate_XY[i][0] - coordinate_XY[j][0]) / RESOLUTION;
 	distanceY = (coordinate_XY[i][1] - coordinate_XY[j][1]) / RESOLUTION;
@@ -58,9 +60,10 @@ void ballSpeed() {
 	 * dt = 1 / FRAME * 10 (FRAME为帧率)
 	 * speed = distance / dt = distance * FRAME / 10
 	 */
-	speedX = distanceX * FRAME / 10;
-	speedY = distanceY * FRAME / 10;
-	speed = distanceIns * FRAME / 10;
+	speedX = distanceX / tim;
+	speedY = distanceY / tim;
+	speed = distanceIns / tim;
+	printf("%.2f\r\n", speed);
 }
 
 //确定9个位置坐标
@@ -135,6 +138,9 @@ void ShowString() {
 	sprintf(Buffer, "Act_Sp:%5.2f", speed);
 	ssd1306_SetCursor(5, 37);
 	ssd1306_WriteString(Buffer, Font_6x8, White);
+
+	printf("Exp_Sp:%5.2f\r\n", sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed));
+	printf("Act_Sp:%5.2f\r\n", speed);
 
 	//OLED输出耗费时间
 	sprintf(Buffer, "Tot_Ti:%5.2f",
@@ -294,7 +300,7 @@ void ModeMove(void) {
 	while (Mode[count] != 0) {
 		count++;
 	}
-g
+
 	for (uint8_t i = 1; i < count;) {
 
 		//确定目的坐标
@@ -415,27 +421,6 @@ void SelfInspection(void) {
 	PCA9685_SetServoAngle(1, 40);
 	HAL_Delay(1000);
 
-//	for (float Angle = 40; Angle <= 140; Angle += 0.005) {
-//		PCA9685_SetServoAngle(0, Angle);
-//		PCA9685_SetServoAngle(1, Angle);
-//	}
-//
-//	for (float Angle = 140; Angle >= 40; Angle -= 0.005) {
-//		PCA9685_SetServoAngle(0, Angle);
-//		PCA9685_SetServoAngle(1, Angle);
-//	}
-//
-//	for (float Angle = 40; Angle <= 140; Angle += 0.005) {
-//		PCA9685_SetServoAngle(0, Angle);
-//		PCA9685_SetServoAngle(1, 180 - Angle);
-//	}
-//
-//	for (float Angle = 140; Angle >= 40; Angle -= 0.005) {
-//		PCA9685_SetServoAngle(0, Angle);
-//		PCA9685_SetServoAngle(1, 180 - Angle);
-//	}
-//	HAL_Delay(400);
-
 	PCA9685_SetServoAngle(0, 70);
 	PCA9685_SetServoAngle(1, 70);
 	HAL_Delay(400);
@@ -451,27 +436,6 @@ void SelfInspection(void) {
 	PCA9685_SetServoAngle(0, 110);
 	PCA9685_SetServoAngle(1, 70);
 	HAL_Delay(1000);
-
-//	for (float Angle = 70; Angle <= 110; Angle += 0.005) {
-//		PCA9685_SetServoAngle(0, Angle);
-//		PCA9685_SetServoAngle(1, Angle);
-//	}
-//
-//	for (float Angle = 110; Angle >= 70; Angle -= 0.005) {
-//		PCA9685_SetServoAngle(0, Angle);
-//		PCA9685_SetServoAngle(1, Angle);
-//	}
-//
-//	for (float Angle = 70; Angle <= 110; Angle += 0.005) {
-//		PCA9685_SetServoAngle(0, Angle);
-//		PCA9685_SetServoAngle(1, 180 - Angle);
-//	}
-//
-//	for (float Angle = 110; Angle >= 70; Angle -= 0.005) {
-//		PCA9685_SetServoAngle(0, Angle);
-//		PCA9685_SetServoAngle(1, 180 - Angle);
-//	}
-//	HAL_Delay(400);
 
 	HAL_Delay(1000);
 	PCA9685_SetServoAngle(0, 90);
@@ -502,8 +466,8 @@ void SelecMode(uint8_t isInit) {
 			i -= 1;
 			continue;
 		} else if (key == INIT) {
-			PCA9685_SetServoAngle(0, 90);
-			PCA9685_SetServoAngle(1, 90);
+			PCA9685_SetServoAngle(0, 95);
+			PCA9685_SetServoAngle(1, 95);
 			i -= 1;
 			continue;
 		}

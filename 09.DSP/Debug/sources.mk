@@ -20,7 +20,6 @@ OBJCOPY_BIN :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-APP/Drivers/LED \
 APP/Src \
 Core/Src \
 Core/Startup \

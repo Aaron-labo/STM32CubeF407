@@ -7,8 +7,7 @@
 
 //坐标PID初始化
 void PID_Init(PID *pid) {
-	printf("PID Init begin\r\n");
-	pid->SetPosi = 40;
+	pid->SetPosi = 0;
 	pid->ActualPosi = 0;
 	pid->errorPosi[0] = 0;
 	pid->errorPosi[1] = 0;
@@ -22,13 +21,28 @@ void PID_Init(PID *pid) {
 	pid->PKp = 0.5;
 	pid->PKi = 0;
 	pid->PKd = 0;
-	pid->SKp = 35;
+	pid->SKp = 50;
 	pid->SKi = 0;
 	pid->SKd = 0;
 }
 
 //坐标PID调节函数(X轴)
 uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed) {
+	float max_angle, min_angle;
+	if(Speed <= 10 && Speed >= -10){
+		max_angle = ANGLE_MAX1;
+		min_angle = ANGLE_MIN1;
+	}else if(Speed <= 20 && Speed >= -20){
+		max_angle = ANGLE_MAX2;
+		min_angle = ANGLE_MIN2;
+	}else if(Speed <= 30 && Speed >= -30){
+		max_angle = ANGLE_MAX3;
+		min_angle = ANGLE_MIN3;
+	}else{
+		max_angle = ANGLE_MAX4;
+		min_angle = ANGLE_MIN4;
+	}
+
 	/******************************外环位置式PID(位置环)d************************************/
 
 	pid->ActualPosi = Posi;
@@ -65,17 +79,25 @@ uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed) {
 	/******************************内环增量式PID(速度环)d************************************/
 
 	pid->errorSpeed[0] = pid->Speed - Speed;
+
 	//增量式PID核心算法
-	pid->angle += pid->SKp * (pid->errorSpeed[0] - pid->errorSpeed[1])
+	float dangle = pid->SKp * (pid->errorSpeed[0] - pid->errorSpeed[1])
 			+ pid->SKi * pid->errorSpeed[0]
 			+ pid->SKd
 					* (pid->errorSpeed[0] - 2 * pid->errorSpeed[1]
 							+ pid->errorSpeed[2]);
+	if(dangle >= DANGLE_MAX){
+		dangle = DANGLE_MAX;
+	}else if(dangle <= -DANGLE_MAX){
+		dangle = -DANGLE_MAX;
+	}
 
-	if (pid->angle >= ANGLE_MAX) {
-		pid->angle = ANGLE_MAX;
-	} else if (pid->angle <= ANGLE_MIN) {
-		pid->angle = ANGLE_MIN;
+	pid->angle += dangle;
+
+	if (pid->angle >= max_angle) {
+		pid->angle = max_angle;
+	} else if (pid->angle <= min_angle) {
+		pid->angle = min_angle;
 	}
 
 	return pid->angle;

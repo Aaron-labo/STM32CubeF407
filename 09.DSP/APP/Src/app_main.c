@@ -6,28 +6,20 @@
  */
 
 #include "app_main.h"
-
 #include "main.h"
 #include "gpio.h"
 
-#include "led.h"
-#include "arm_math.h"
 #include "math.h"
+#include "arm_math.h"
 
-float32_t Vrefa, Vrefb, Vrefc;
+float_t sin;
 
 void app_main_init() {
 
 }
 
 void app_main() {
-	LED0_On();
-
-	Vrefa = arm_sin_f32(2*PI*1000);
-	Vrefa = arm_sin_f32(2*PI*1000 + 2*PI/3);
-	Vrefa = arm_sin_f32(2*PI*1000 - 2*PI/3);
-
-	LED0_Off();
+	sin = arm_sin_f32(2*pi*2000);
 }
 
 // 须在头文件中添加 #include <stdio.h>

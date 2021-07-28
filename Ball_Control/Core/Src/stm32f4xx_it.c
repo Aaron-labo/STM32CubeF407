@@ -229,7 +229,7 @@ void EXTI0_IRQHandler(void)
 		//让舵机角度再次回到初始值
 		PCA9685_SetServoAngle(0, 90);
 		PCA9685_SetServoAngle(1, 90);
-
+		PID_Reset();
 		//使用矩形键盘设置模式
 		SelecMode(0);
 		printf("%d  %d  %d  %d  %d\r\n", Mode[0], Mode[1], Mode[2], Mode[3],
