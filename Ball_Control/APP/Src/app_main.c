@@ -87,8 +87,8 @@ void GetSetPosi(uint16_t *SetPosi, uint8_t number) {
 		SetPosi[1] = 200;
 		break;
 	case FIVE:
-		SetPosi[0] = 200;
-		SetPosi[1] = 200;
+		SetPosi[0] = 64;
+		SetPosi[1] = 61;
 		break;
 	case SIX:
 		SetPosi[0] = 320;

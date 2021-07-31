@@ -19,9 +19,8 @@ extern DMA_HandleTypeDef hdma_usart1_rx;
 
 extern float tim;
 
-uint16_t asc2int(uint8_t huns, uint8_t tens, uint8_t ones)
-{
-	uint16_t number = (huns-48) * 100 + (tens-48) * 10 + (ones-48);
+uint16_t asc2int(uint8_t huns, uint8_t tens, uint8_t ones) {
+	uint16_t number = (huns - 48) * 100 + (tens - 48) * 10 + (ones - 48);
 	return number;
 }
 
@@ -30,10 +29,15 @@ void USAR_UART_IDLECallback(UART_HandleTypeDef *huart) {
 	uint8_t start = 0, end = 0;
 	uint8_t isStart = 0;
 	// 停止本次DMA传输
+	uint8_t k = 0;
+	k++;
+	if (k >= 3) {
+		HAL_TIM_Base_Stop(&htim3); //按下确定键后开始计时
+		tim = __HAL_TIM_GET_COUNTER(&htim3) * 1.0 / 10000;
+		__HAL_TIM_SET_COUNTER(&htim3, 0);  //重新将计时器置零，方便下次计时
+	}
+
 	HAL_UART_DMAStop(&huart1);
-	HAL_TIM_Base_Stop(&htim3); //按下确定键后开始计时
-	tim = __HAL_TIM_GET_COUNTER(&htim3)*1.0/10000;
-	__HAL_TIM_SET_COUNTER(&htim3, 0);  //重新将计时器置零，方便下次计时
 	// 计算接收到的数据长度
 	uint8_t data_length = BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
 
@@ -47,9 +51,8 @@ void USAR_UART_IDLECallback(UART_HandleTypeDef *huart) {
 				isStart = 1;
 			}
 		}
-		if(isStart == 1 && receive_buff[j] == 0x65)
-		{
-			if(receive_buff[j] == 0x65 && receive_buff[j+1] == 0x66){
+		if (isStart == 1 && receive_buff[j] == 0x65) {
+			if (receive_buff[j] == 0x65 && receive_buff[j + 1] == 0x66) {
 				end = j - 1;
 				isStart = 2;
 			}
@@ -68,11 +71,12 @@ void USAR_UART_IDLECallback(UART_HandleTypeDef *huart) {
 		if (i >= 31) {
 			i = 0;
 		}
-		coordinate_XY[i][0] = asc2int(receive_buff[start], receive_buff[start+1], receive_buff[start+2]);
-		coordinate_XY[i][1] = asc2int(receive_buff[end-2], receive_buff[end-1], receive_buff[end]);
+		coordinate_XY[i][0] = asc2int(receive_buff[start],
+				receive_buff[start + 1], receive_buff[start + 2]);
+		coordinate_XY[i][1] = asc2int(receive_buff[end - 2],
+				receive_buff[end - 1], receive_buff[end]);
 
 //		printf("%d %d\r\n", coordinate_XY[i][0], coordinate_XY[i][1]);
-
 
 	}
 
@@ -82,7 +86,10 @@ void USAR_UART_IDLECallback(UART_HandleTypeDef *huart) {
 
 	HAL_TIM_Base_Start(&htim3); //按下确定键后开始计时
 // 重启开始DMA传输 每次255字节数据
-	HAL_UART_Receive_DMA(&huart1, (uint8_t*) receive_buff, 32);
+	if(k >= 3){
+		HAL_UART_Receive_DMA(&huart1, (uint8_t*) receive_buff, 32);
+		k = 0;
+	}
 }
 void USER_UART_IRQHandler(UART_HandleTypeDef *huart) {	// 判断是否是串口1
 //	printf("\r\n进入中断函数.....\r\n");

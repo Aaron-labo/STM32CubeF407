@@ -25,6 +25,7 @@ typedef struct {
 	float Speed;  //定义速度期望
 	float angle;  //定义舵机角度期望
 	float integral;  //定义位置积分值
+	float a;
 } PID;
 
 void PID_Init(PID* pid);

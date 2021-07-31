@@ -77,72 +77,23 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 uint8_t Remote_Scan(void)
 {
+	uint8_t key = 0;
 	if(recFlag)
 	{
 		BEEP_On();
 		recFlag = 0;    //防止if语句重复成立
-//		for(int i =0;i<4 ;i++)
-//		{
-//			printf("%d  ",IRCodes[i]);
-//		}
-//			printf("\r\n");
-
-		switch (IRCodes[2]) {
-			case ONE:
-				printf("1\r\n");
-				break;
-			case TWO:
-				printf("2\r\n");
-				break;
-			case THREE:
-				printf("3\r\n");
-				break;
-			case FOUR:
-				printf("4\r\n");
-				break;
-			case FIVE:
-				printf("5\r\n");
-				break;
-			case SIX:
-				printf("6\r\n");
-				break;
-			case SEVEN:
-				printf("7\r\n");
-				break;
-			case EIGHT:
-				printf("8\r\n");
-				break;
-			case NINE:
-				printf("9\r\n");
-				break;
-			case ZERO:
-				printf("0\r\n");
-				break;
-			case STAR:
-				printf("*\r\n");
-				break;
-			case WELL:
-				printf("#\r\n");
-				break;
-			case UP:
-				printf("UP\r\n");
-				break;
-			case DOWN:
-				printf("DOWN\r\n");
-				break;
-			case RIGHT:
-				printf("RIGHT\r\n");
-				break;
-			case LEFT:
-				printf("LEFT\r\n");
-				break;
-			case CETER:
-				printf("CETER\r\n");
-				break;
+		if(IRCodes[2])
+		{
+			key = IRCodes[2];
+		}else{
+			key = NOPRES;
 		}
 		HAL_Delay(100);
+		BEEP_Off();
+    }else{
+    	key = NOPRES;
     }
-	BEEP_Off();
-	return IRCodes[2];
+
+	return key;
 }
 

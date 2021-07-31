@@ -15,33 +15,34 @@ void PID_Init(PID *pid) {
 	pid->errorSpeed[1] = 0;
 	pid->errorSpeed[2] = 0;
 	pid->Speed = 0;
-	pid->angle = 90;
+	pid->angle = 95;
 	pid->integral = 0;
+	pid->a = 0.08;
 
-	pid->PKp = 0.5;
+	pid->PKp = 1;
 	pid->PKi = 0;
 	pid->PKd = 0;
-	pid->SKp = 50;
-	pid->SKi = 0;
-	pid->SKd = 0;
+	pid->SKp = 0.001;
+	pid->SKi = 2.8e-06;
+	pid->SKd = 0.05;
 }
 
 //坐标PID调节函数(X轴)
 uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed) {
-	float max_angle, min_angle;
-	if(Speed <= 10 && Speed >= -10){
-		max_angle = ANGLE_MAX1;
-		min_angle = ANGLE_MIN1;
-	}else if(Speed <= 20 && Speed >= -20){
-		max_angle = ANGLE_MAX2;
-		min_angle = ANGLE_MIN2;
-	}else if(Speed <= 30 && Speed >= -30){
-		max_angle = ANGLE_MAX3;
-		min_angle = ANGLE_MIN3;
-	}else{
-		max_angle = ANGLE_MAX4;
-		min_angle = ANGLE_MIN4;
-	}
+//	float max_angle, min_angle;
+//	if(Speed <= 10 && Speed >= -10){
+//		max_angle = ANGLE_MAX1;
+//		min_angle = ANGLE_MIN1;
+//	}else if(Speed <= 20 && Speed >= -20){
+//		max_angle = ANGLE_MAX2;
+//		min_angle = ANGLE_MIN2;
+//	}else if(Speed <= 30 && Speed >= -30){
+//		max_angle = ANGLE_MAX3;
+//		min_angle = ANGLE_MIN3;
+//	}else{
+//		max_angle = ANGLE_MAX4;
+//		min_angle = ANGLE_MIN4;
+//	}
 
 	/******************************外环位置式PID(位置环)d************************************/
 
@@ -80,27 +81,20 @@ uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed) {
 
 	pid->errorSpeed[0] = pid->Speed - Speed;
 
+	float error = (pid->errorSpeed[0] - pid->errorSpeed[1])*pid->a + (pid->errorSpeed[1] - pid->errorSpeed[2])*(1-pid->a);
+
 	//增量式PID核心算法
-	float dangle = pid->SKp * (pid->errorSpeed[0] - pid->errorSpeed[1])
-			+ pid->SKi * pid->errorSpeed[0]
-			+ pid->SKd
-					* (pid->errorSpeed[0] - 2 * pid->errorSpeed[1]
-							+ pid->errorSpeed[2]);
-	if(dangle >= DANGLE_MAX){
-		dangle = DANGLE_MAX;
-	}else if(dangle <= -DANGLE_MAX){
-		dangle = -DANGLE_MAX;
+	pid->angle = pid->SKp * pid->errorPosi[0] + pid->SKi * pid->integral + pid->SKd * error;
+
+	if(pid->angle >= 30){
+		pid->angle = 30;
+	}else if(pid->angle <= -30){
+		pid->angle = -30;
 	}
 
-	pid->angle += dangle;
+	float angle = 95 + pid->angle;
 
-	if (pid->angle >= max_angle) {
-		pid->angle = max_angle;
-	} else if (pid->angle <= min_angle) {
-		pid->angle = min_angle;
-	}
-
-	return pid->angle;
+	return angle;
 
 	/****************************************************************************************/
 }
