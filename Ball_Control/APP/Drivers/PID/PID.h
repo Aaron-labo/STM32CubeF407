@@ -3,8 +3,8 @@
 
 #include "main.h"
 
-#define LOCAL_MAX 150
-#define LOC_DEAD_ZONE 3 //死区范围
+#define LOCAL_MAX 45
+#define LOC_DEAD_ZONE 4.5 //死区范围
 #define ANGLE_MAX1 100
 #define ANGLE_MIN1 80
 #define ANGLE_MAX2 110
@@ -24,8 +24,8 @@ typedef struct {
 	float SKp, SKi, SKd;  //定义速度比例、积分、微分系数
 	float Speed;  //定义速度期望
 	float angle;  //定义舵机角度期望
-	float integral;  //定义位置积分值
-	float a;
+	float PosiIntegral;  //定义位置积分值
+	float SpeedIntergral;
 } PID;
 
 void PID_Init(PID* pid);

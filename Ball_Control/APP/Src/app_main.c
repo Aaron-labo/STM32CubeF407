@@ -19,7 +19,7 @@
 #include "remote.h"
 
 #define FRAME 10  //设置摄像头帧率为50
-#define RESOLUTION 10 //即10个像素点表示1cm
+#define RESOLUTION 2.75 //即10个像素点表示1cm
 #define LEN 32
 
 //MPU6050_t MPU6050; //MPU6050结构体，用于存放欧拉角的原始值和结果
@@ -42,7 +42,7 @@ float tim;
 void ballSpeed() {
 	float distanceX, distanceY, distanceIns; //用于存放X，Y方向上的间距
 	uint8_t j = 0;
-	j = (i - 1) ? (i >= 1) : (i - 1 + LEN);  //使用当前帧的坐标和10帧前的坐标计算瞬时速度
+	j = (i - 3) ? (i >= 3) : (i - 3 + LEN);  //使用当前帧的坐标和10帧前的坐标计算瞬时速度
 	//计算瞬时的X方向、Y方向和总间距
 	distanceX = (coordinate_XY[i][0] - coordinate_XY[j][0]) / RESOLUTION;
 	distanceY = (coordinate_XY[i][1] - coordinate_XY[j][1]) / RESOLUTION;
@@ -63,7 +63,7 @@ void ballSpeed() {
 	speedX = distanceX / tim;
 	speedY = distanceY / tim;
 	speed = distanceIns / tim;
-	printf("%.2f\r\n", speed);
+//	printf("%.2f\r\n", speed);
 }
 
 //确定9个位置坐标
@@ -71,40 +71,40 @@ void ballSpeed() {
 void GetSetPosi(uint16_t *SetPosi, uint8_t number) {
 	switch (number) {
 	case ONE:
-		SetPosi[0] = 80;
-		SetPosi[1] = 80;
+		SetPosi[0] = 22;
+		SetPosi[1] = 22;
 		break;
 	case TWO:
-		SetPosi[0] = 200;
-		SetPosi[1] = 80;
+		SetPosi[0] = 55;
+		SetPosi[1] = 22;
 		break;
 	case THREE:
-		SetPosi[0] = 320;
-		SetPosi[1] = 80;
+		SetPosi[0] = 88;
+		SetPosi[1] = 22;
 		break;
 	case FOUR:
-		SetPosi[0] = 80;
-		SetPosi[1] = 200;
+		SetPosi[0] = 22;
+		SetPosi[1] = 55;
 		break;
 	case FIVE:
-		SetPosi[0] = 64;
-		SetPosi[1] = 61;
+		SetPosi[0] = 55;
+		SetPosi[1] = 55;
 		break;
 	case SIX:
-		SetPosi[0] = 320;
-		SetPosi[1] = 200;
+		SetPosi[0] = 88;
+		SetPosi[1] = 55;
 		break;
 	case SEVEN:
-		SetPosi[0] = 80;
-		SetPosi[1] = 320;
+		SetPosi[0] = 22;
+		SetPosi[1] = 88;
 		break;
 	case EIGHT:
-		SetPosi[0] = 200;
-		SetPosi[1] = 320;
+		SetPosi[0] = 55;
+		SetPosi[1] = 88;
 		break;
 	case NINE:
-		SetPosi[0] = 320;
-		SetPosi[1] = 320;
+		SetPosi[0] = 88;
+		SetPosi[1] = 88;
 		break;
 	}
 }
@@ -138,9 +138,9 @@ void ShowString() {
 	sprintf(Buffer, "Act_Sp:%5.2f", speed);
 	ssd1306_SetCursor(5, 37);
 	ssd1306_WriteString(Buffer, Font_6x8, White);
-
-	printf("Exp_Sp:%5.2f\r\n", sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed));
-	printf("Act_Sp:%5.2f\r\n", speed);
+//
+//	printf("Exp_Sp:%5.2f\r\n", sqrtf(pid_X.Speed * pid_X.Speed + pid_Y.Speed * pid_Y.Speed));
+//	printf("Act_Sp:%5.2f\r\n", speed);
 
 	//OLED输出耗费时间
 	sprintf(Buffer, "Tot_Ti:%5.2f",

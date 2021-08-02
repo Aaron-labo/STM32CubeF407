@@ -58,7 +58,7 @@ void MX_USART1_UART_Init(void)
   }
   /* USER CODE BEGIN USART1_Init 2 */
 	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);  // 使能串口空闲中断
-	HAL_UART_Receive_DMA(&huart1, (uint8_t*) receive_buff, 8); //设置DMA传输，将串口1的数据搬运到recvive_buff中，每次8个字节
+	HAL_UART_Receive_DMA(&huart1, (uint8_t*) receive_buff, 32); //设置DMA传输，将串口1的数据搬运到recvive_buff中，每次8个字节
   /* USER CODE END USART1_Init 2 */
 
 }

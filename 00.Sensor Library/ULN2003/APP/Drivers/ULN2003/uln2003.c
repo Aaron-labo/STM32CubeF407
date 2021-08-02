@@ -10,18 +10,6 @@
 uint8_t forward[8] = { 0x01, 0x03, 0x02, 0x06, 0x04, 0x0C, 0x08, 0x09 }; // 正转
 uint8_t reverse[8] = { 0x09, 0x08, 0x0C, 0x04, 0x06, 0x02, 0x03, 0x01 }; // 反转
 
-/**
- * @brief 微秒级延时，参考F103的库实现
- * @retval None
- */
-void delay_us(uint32_t duration) {
-  //见stm32f1xx_hal_rcc.c -- static void RCC_Delay(uint32_t mdelay)
-  __IO uint32_t Delay = duration * (SystemCoreClock / 8U / 1000000U);
-  do {
-	__NOP();
-  } while (Delay--);
-}
-
 //引脚映射
 void MotorControl(unsigned char InputData) {
 	HAL_GPIO_WritePin(MOTOR_GPIO_Port, MOTOR_A_Pin,
