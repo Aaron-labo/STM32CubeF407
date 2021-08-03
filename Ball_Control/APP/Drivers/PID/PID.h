@@ -4,15 +4,15 @@
 #include "main.h"
 
 #define LOCAL_MAX 45
-#define LOC_DEAD_ZONE 4.5 //死区范围
-#define ANGLE_MAX1 100
+#define LOC_DEAD_ZONE 5 //死区范围
+#define ANGLE_MAX1 110
 #define ANGLE_MIN1 80
-#define ANGLE_MAX2 110
-#define ANGLE_MIN2 70
-#define ANGLE_MAX3 120
-#define ANGLE_MIN3 60
-#define ANGLE_MAX4 130
-#define ANGLE_MIN4 50
+#define ANGLE_MAX2 115
+#define ANGLE_MIN2 75
+#define ANGLE_MAX3 125
+#define ANGLE_MIN3 65
+#define ANGLE_MAX4 135
+#define ANGLE_MIN4 55
 #define DANGLE_MAX 0.7
 
 typedef struct {

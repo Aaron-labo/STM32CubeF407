@@ -19,30 +19,30 @@ void PID_Init(PID *pid) {
 	pid->PosiIntegral = 0;
 	pid->SpeedIntergral = 0;
 
-	pid->PKp = 1;
+	pid->PKp = 0.5;
 	pid->PKi = 0;
 	pid->PKd = 0;
-	pid->SKp = 50;
+	pid->SKp = 160;
 	pid->SKi = 0;
-	pid->SKd = 1;
+	pid->SKd = 100;
 }
 
 //坐标PID调节函数(X轴)
 uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed) {
-//	float max_angle, min_angle;
-//	if(Speed <= 10 && Speed >= -10){
-//		max_angle = ANGLE_MAX1;
-//		min_angle = ANGLE_MIN1;
-//	}else if(Speed <= 20 && Speed >= -20){
-//		max_angle = ANGLE_MAX2;
-//		min_angle = ANGLE_MIN2;
-//	}else if(Speed <= 30 && Speed >= -30){
-//		max_angle = ANGLE_MAX3;
-//		min_angle = ANGLE_MIN3;
-//	}else{
-//		max_angle = ANGLE_MAX4;
-//		min_angle = ANGLE_MIN4;
-//	}
+	float max_angle, min_angle;
+	if (Speed <= 10 && Speed >= -10) {
+		max_angle = ANGLE_MAX1;
+		min_angle = ANGLE_MIN1;
+	} else if (Speed <= 40 && Speed >= -40) {
+		max_angle = ANGLE_MAX2;
+		min_angle = ANGLE_MIN2;
+	} else if (Speed <= 70 && Speed >= -70) {
+		max_angle = ANGLE_MAX3;
+		min_angle = ANGLE_MIN3;
+	} else {
+		max_angle = ANGLE_MAX4;
+		min_angle = ANGLE_MIN4;
+	}
 
 	/******************************外环位置式PID(位置环)d************************************/
 
@@ -53,7 +53,6 @@ uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed) {
 	if ((pid->errorPosi[0] >= -LOC_DEAD_ZONE)
 			&& (pid->errorPosi[0] <= LOC_DEAD_ZONE)) {
 		pid->errorPosi[0] = 0;
-		pid->PosiIntegral = 0;
 		pid->errorPosi[1] = 0;
 	}
 
@@ -92,10 +91,10 @@ uint16_t PID_Calc(PID *pid, uint16_t Posi, float Speed) {
 					+ pid->SKd
 							* (pid->errorPosi[0] - pid->errorPosi[1]
 									+ pid->errorPosi[2]);
-	if (pid->angle >= 125) {
-		pid->angle = 125;
-	} else if (pid->angle <= 65) {
-		pid->angle = 65;
+	if (pid->angle >= max_angle) {
+		pid->angle = max_angle;
+	} else if (pid->angle <= min_angle) {
+		pid->angle = min_angle;
 	}
 
 	pid->errorSpeed[2] = pid->errorSpeed[1];

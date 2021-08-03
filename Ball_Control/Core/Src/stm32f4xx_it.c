@@ -29,6 +29,7 @@
 #include "pca9685.h"
 #include "tim.h"
 #include "ssd1306.h"
+#include "pid.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -59,6 +60,7 @@
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 extern uint8_t Mode[6];
+extern PID pid_X, pid_Y;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -227,9 +229,10 @@ void EXTI0_IRQHandler(void)
 		ssd1306_WriteString("      ", Font_6x8, White);
 		ssd1306_UpdateScreen();
 		//让舵机角度再次回到初始值
-		PCA9685_SetServoAngle(0, 90);
-		PCA9685_SetServoAngle(1, 90);
-		PID_Reset();
+		PCA9685_SetServoAngle(0, 95);
+		PCA9685_SetServoAngle(1, 95);
+		PID_Reset(&pid_X);
+		PID_Reset(&pid_Y);
 		//使用矩形键盘设置模式
 		SelecMode(0);
 		printf("%d  %d  %d  %d  %d\r\n", Mode[0], Mode[1], Mode[2], Mode[3],
